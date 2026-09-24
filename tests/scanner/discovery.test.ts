@@ -609,4 +609,78 @@ describe("discoverConfigFiles", () => {
       expect(result.files.some((f) => f.type === "settings-json")).toBe(true);
     }
   );
+
+  describe("agent libraries outside known directories", () => {
+    const agentFile = [
+      "---",
+      "name: Frontend Developer",
+      "description: Builds accessible UIs",
+      "---",
+      "",
+      "# Frontend Developer",
+    ].join("\n");
+
+    it("discovers markdown files with name and description frontmatter as agents", () => {
+      const dir = createTempDir();
+      mkdirSync(join(dir, "engineering"));
+      writeFileSync(join(dir, "engineering", "frontend-developer.md"), agentFile);
+      writeFileSync(join(dir, "README.md"), "# Agency\n\nNo frontmatter here.");
+
+      const result = discoverConfigFiles(dir);
+      expect(result.files.map((f) => [f.path, f.type])).toEqual([
+        ["engineering/frontend-developer.md", "agent-md"],
+      ]);
+    });
+
+    it("reads CRLF frontmatter", () => {
+      const dir = createTempDir();
+      mkdirSync(join(dir, "design"));
+      writeFileSync(join(dir, "design", "ui.md"), agentFile.replace(/\n/g, "\r\n"));
+
+      const result = discoverConfigFiles(dir);
+      expect(result.files.map((f) => f.path)).toEqual(["design/ui.md"]);
+    });
+
+    it("types a nested SKILL.md as a skill", () => {
+      const dir = createTempDir();
+      mkdirSync(join(dir, "packs", "review"), { recursive: true });
+      writeFileSync(join(dir, "packs", "review", "SKILL.md"), agentFile);
+
+      const result = discoverConfigFiles(dir);
+      expect(result.files.map((f) => [f.path, f.type])).toEqual([
+        ["packs/review/SKILL.md", "skill-md"],
+      ]);
+    });
+
+    it("ignores frontmatter missing a name or description", () => {
+      const dir = createTempDir();
+      writeFileSync(join(dir, "post.md"), "---\ntitle: Blog post\ndescription: Notes\n---\n");
+      writeFileSync(join(dir, "note.md"), "---\nname: note\ndescription: \"\"\n---\n");
+
+      const result = discoverConfigFiles(dir);
+      expect(result.files).toEqual([]);
+    });
+
+    it("skips example and documentation folders", () => {
+      const dir = createTempDir();
+      mkdirSync(join(dir, "examples"));
+      mkdirSync(join(dir, "docs"));
+      writeFileSync(join(dir, "examples", "agent.md"), agentFile);
+      writeFileSync(join(dir, "docs", "agent.md"), agentFile);
+
+      const result = discoverConfigFiles(dir);
+      expect(result.files).toEqual([]);
+    });
+
+    it("keeps the type from a known directory over the frontmatter fallback", () => {
+      const dir = createTempDir();
+      writeFileSync(join(dir, "CLAUDE.md"), "# Rules");
+      mkdirSync(join(dir, "commands"));
+      writeFileSync(join(dir, "commands", "deploy.md"), agentFile);
+
+      const result = discoverConfigFiles(dir);
+      const deploy = result.files.find((f) => f.path === "commands/deploy.md");
+      expect(deploy?.type).toBe("command-md");
+    });
+  });
 });
