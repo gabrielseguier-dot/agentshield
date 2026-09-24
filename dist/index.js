@@ -80,74 +80,8 @@ var init_paths = __esm({
   }
 });
 
-// src/scanner/parsers.ts
-import { parse as parseToml } from "smol-toml";
-import { parse as parseYaml } from "yaml";
-function parseTomlSafe(content) {
-  try {
-    const value = parseToml(content);
-    return value && typeof value === "object" ? value : null;
-  } catch {
-    return null;
-  }
-}
-function parseYamlSafe(content) {
-  try {
-    const value = parseYaml(content);
-    return value && typeof value === "object" && !Array.isArray(value) ? value : null;
-  } catch {
-    return null;
-  }
-}
-function stripControlCharacters(text) {
-  let out = "";
-  for (const ch of text) {
-    const code = ch.charCodeAt(0);
-    const isControl = code < 32 && code !== 9 && code !== 10 && code !== 13;
-    if (!isControl) out += ch;
-  }
-  return out;
-}
-function parseJsonLenient(content) {
-  const attempt = (text) => {
-    try {
-      const value = JSON.parse(text);
-      return value && typeof value === "object" && !Array.isArray(value) ? value : null;
-    } catch {
-      return null;
-    }
-  };
-  const strict = attempt(content);
-  if (strict) return strict;
-  const withoutComments = content.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:\\"'])\/\/[^\n]*/g, "$1");
-  const withoutTrailingCommas = withoutComments.replace(/,\s*([}\]])/g, "$1");
-  const withoutControl = stripControlCharacters(withoutTrailingCommas);
-  return attempt(withoutControl);
-}
-function parseFrontmatter(content) {
-  if (!content.startsWith("---")) return null;
-  const end = content.indexOf("\n---", 3);
-  if (end === -1) return null;
-  return parseYamlSafe(content.slice(3, end));
-}
-var init_parsers = __esm({
-  "src/scanner/parsers.ts"() {
-    "use strict";
-  }
-});
-
 // src/scanner/discovery.ts
-import {
-  readFileSync,
-  existsSync,
-  readdirSync,
-  readlinkSync,
-  statSync,
-  lstatSync,
-  openSync,
-  readSync,
-  closeSync
-} from "fs";
+import { readFileSync, existsSync, readdirSync, readlinkSync, statSync, lstatSync } from "fs";
 import { join, basename, extname, relative } from "path";
 function discoverConfigFiles(rootPath) {
   const files = [];
@@ -155,17 +89,12 @@ function discoverConfigFiles(rootPath) {
   const seenFiles = /* @__PURE__ */ new Set();
   const claudeRoots = /* @__PURE__ */ new Set([rootPath]);
   const exampleClaudeFiles = /* @__PURE__ */ new Set();
-  const agentDefinitionFiles = /* @__PURE__ */ new Set();
-  walkForClaudeRoots(rootPath, rootPath, claudeRoots, exampleClaudeFiles, agentDefinitionFiles);
+  walkForClaudeRoots(rootPath, rootPath, claudeRoots, exampleClaudeFiles);
   for (const exampleClaudeFile of [...exampleClaudeFiles].sort()) {
     addDiscoveredFile(rootPath, exampleClaudeFile, "claude-md", files, seenFiles);
   }
   for (const claudeRoot of [...claudeRoots].sort()) {
     scanClaudeRoot(rootPath, claudeRoot, files, seenFiles, danglingSymlinks);
-  }
-  for (const agentFile of [...agentDefinitionFiles].sort()) {
-    const type = basename(agentFile).toLowerCase() === "skill.md" ? "skill-md" : "agent-md";
-    addDiscoveredFile(rootPath, agentFile, type, files, seenFiles);
   }
   return { path: rootPath, files, danglingSymlinks };
 }
@@ -190,7 +119,7 @@ function readSymlinkTarget(path) {
     return "";
   }
 }
-function walkForClaudeRoots(scanRoot, dirPath, claudeRoots, exampleClaudeFiles, agentDefinitionFiles) {
+function walkForClaudeRoots(scanRoot, dirPath, claudeRoots, exampleClaudeFiles) {
   if (!statOrNull(dirPath)?.isDirectory()) return;
   const entries = readdirSync(dirPath, { withFileTypes: true });
   for (const entry of entries) {
@@ -203,13 +132,7 @@ function walkForClaudeRoots(scanRoot, dirPath, claudeRoots, exampleClaudeFiles, 
         claudeRoots.add(dirPath);
         continue;
       }
-      walkForClaudeRoots(
-        scanRoot,
-        join(dirPath, entry.name),
-        claudeRoots,
-        exampleClaudeFiles,
-        agentDefinitionFiles
-      );
+      walkForClaudeRoots(scanRoot, join(dirPath, entry.name), claudeRoots, exampleClaudeFiles);
       continue;
     }
     if (!entry.isFile()) continue;
@@ -219,33 +142,7 @@ function walkForClaudeRoots(scanRoot, dirPath, claudeRoots, exampleClaudeFiles, 
         continue;
       }
       claudeRoots.add(dirPath);
-      continue;
     }
-    const filePath = join(dirPath, entry.name);
-    if (isAgentDefinitionFile(scanRoot, filePath)) {
-      agentDefinitionFiles.add(filePath);
-    }
-  }
-}
-function isAgentDefinitionFile(scanRoot, filePath) {
-  if (!MARKDOWN_EXTENSIONS.has(extname(filePath).toLowerCase())) return false;
-  if (isExampleLikePath(toPosixPath(relative(scanRoot, filePath)))) return false;
-  const head = readFileHead(filePath);
-  if (head === null) return false;
-  const frontmatter = parseFrontmatter(head);
-  return typeof frontmatter?.name === "string" && frontmatter.name.trim().length > 0 && typeof frontmatter.description === "string" && frontmatter.description.trim().length > 0;
-}
-function readFileHead(filePath) {
-  let fd = null;
-  try {
-    fd = openSync(filePath, "r");
-    const buffer = Buffer.alloc(FRONTMATTER_PROBE_BYTES);
-    const bytesRead = readSync(fd, buffer, 0, FRONTMATTER_PROBE_BYTES, 0);
-    return buffer.toString("utf-8", 0, bytesRead).replace(/\r\n/g, "\n");
-  } catch {
-    return null;
-  } finally {
-    if (fd !== null) closeSync(fd);
   }
 }
 function isExampleOnlyClaudeRoot(scanRoot, dirPath, markerName) {
@@ -546,13 +443,12 @@ function addDiscoveredFile(scanRoot, fullPath, type, files, seenFiles) {
   files.push({ path: relativePath, type, content });
   seenFiles.add(relativePath);
 }
-var IGNORED_DIRS, CLAUDE_ROOT_MARKERS, HARNESS_ROOT_DIRS, MARKDOWN_EXTENSIONS, FRONTMATTER_PROBE_BYTES, CLAUDE_RUNTIME_COMPANION_NAMES, HOOK_SHELL_EXTENSIONS, HOOK_CODE_EXTENSIONS, HOOK_IMPLEMENTATION_EXTENSIONS, PACKAGE_MANAGER_CONFIG_FILES, PROJECT_ROOT_HOOK_VARS;
+var IGNORED_DIRS, CLAUDE_ROOT_MARKERS, HARNESS_ROOT_DIRS, CLAUDE_RUNTIME_COMPANION_NAMES, HOOK_SHELL_EXTENSIONS, HOOK_CODE_EXTENSIONS, HOOK_IMPLEMENTATION_EXTENSIONS, PACKAGE_MANAGER_CONFIG_FILES, PROJECT_ROOT_HOOK_VARS;
 var init_discovery = __esm({
   "src/scanner/discovery.ts"() {
     "use strict";
     init_source_context();
     init_paths();
-    init_parsers();
     IGNORED_DIRS = /* @__PURE__ */ new Set([
       ".dmux",
       ".git",
@@ -579,8 +475,6 @@ var init_discovery = __esm({
       "opencode.json"
     ]);
     HARNESS_ROOT_DIRS = /* @__PURE__ */ new Set([".codex", ".claude-plugin", ".cursor", ".gemini", ".opencode"]);
-    MARKDOWN_EXTENSIONS = /* @__PURE__ */ new Set([".md", ".markdown"]);
-    FRONTMATTER_PROBE_BYTES = 8192;
     CLAUDE_RUNTIME_COMPANION_NAMES = [
       "settings.json",
       "settings.local.json",
@@ -6891,6 +6785,62 @@ var init_mcp_tool_poisoning = __esm({
       }
     ];
     toolPoisoningRules = rawToolPoisoningRules;
+  }
+});
+
+// src/scanner/parsers.ts
+import { parse as parseToml } from "smol-toml";
+import { parse as parseYaml } from "yaml";
+function parseTomlSafe(content) {
+  try {
+    const value = parseToml(content);
+    return value && typeof value === "object" ? value : null;
+  } catch {
+    return null;
+  }
+}
+function parseYamlSafe(content) {
+  try {
+    const value = parseYaml(content);
+    return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+function stripControlCharacters(text) {
+  let out = "";
+  for (const ch of text) {
+    const code = ch.charCodeAt(0);
+    const isControl = code < 32 && code !== 9 && code !== 10 && code !== 13;
+    if (!isControl) out += ch;
+  }
+  return out;
+}
+function parseJsonLenient(content) {
+  const attempt = (text) => {
+    try {
+      const value = JSON.parse(text);
+      return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+    } catch {
+      return null;
+    }
+  };
+  const strict = attempt(content);
+  if (strict) return strict;
+  const withoutComments = content.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:\\"'])\/\/[^\n]*/g, "$1");
+  const withoutTrailingCommas = withoutComments.replace(/,\s*([}\]])/g, "$1");
+  const withoutControl = stripControlCharacters(withoutTrailingCommas);
+  return attempt(withoutControl);
+}
+function parseFrontmatter(content) {
+  if (!content.startsWith("---")) return null;
+  const end = content.indexOf("\n---", 3);
+  if (end === -1) return null;
+  return parseYamlSafe(content.slice(3, end));
+}
+var init_parsers = __esm({
+  "src/scanner/parsers.ts"() {
+    "use strict";
   }
 });
 

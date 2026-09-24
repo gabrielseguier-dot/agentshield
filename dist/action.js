@@ -39,6 +39,322 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
+// src/threat-intel/cve-database.ts
+function checkPackageName(packageName, version) {
+  const match = MALICIOUS_PACKAGES.find((pkg) => pkg.name === packageName);
+  if (!match) return void 0;
+  if (match.type === "compromised" && match.affectedVersions && version) {
+    const affectedVersionList = match.affectedVersions.split(",").map((v) => v.trim());
+    if (!affectedVersionList.includes(version)) {
+      return void 0;
+    }
+  }
+  return match;
+}
+function checkServerPackage(command, args) {
+  for (const server of VULNERABLE_SERVERS) {
+    if (command === server.packageName || command.endsWith(`/${server.packageName}`)) {
+      return server;
+    }
+  }
+  for (const arg of args) {
+    if (arg.startsWith("-")) continue;
+    for (const server of VULNERABLE_SERVERS) {
+      if (arg === server.packageName || arg.startsWith(`${server.packageName}@`)) {
+        return server;
+      }
+    }
+  }
+  return void 0;
+}
+var TANSTACK_MINI_SHAI_HULUD_PACKAGES, MINI_SHAI_HULUD_ADDITIONAL_PACKAGES, MALICIOUS_PACKAGES, VULNERABLE_SERVERS;
+var init_cve_database = __esm({
+  "src/threat-intel/cve-database.ts"() {
+    "use strict";
+    TANSTACK_MINI_SHAI_HULUD_PACKAGES = [
+      ["@tanstack/arktype-adapter", "1.166.12, 1.166.15"],
+      ["@tanstack/eslint-plugin-router", "1.161.9, 1.161.12"],
+      ["@tanstack/eslint-plugin-start", "0.0.4, 0.0.7"],
+      ["@tanstack/history", "1.161.9, 1.161.12"],
+      ["@tanstack/nitro-v2-vite-plugin", "1.154.12, 1.154.15"],
+      ["@tanstack/react-router", "1.169.5, 1.169.8"],
+      ["@tanstack/react-router-devtools", "1.166.16, 1.166.19"],
+      ["@tanstack/react-router-ssr-query", "1.166.15, 1.166.18"],
+      ["@tanstack/react-start", "1.167.68, 1.167.71"],
+      ["@tanstack/react-start-client", "1.166.51, 1.166.54"],
+      ["@tanstack/react-start-rsc", "0.0.47, 0.0.50"],
+      ["@tanstack/react-start-server", "1.166.55, 1.166.58"],
+      ["@tanstack/router-cli", "1.166.46, 1.166.49"],
+      ["@tanstack/router-core", "1.169.5, 1.169.8"],
+      ["@tanstack/router-devtools", "1.166.16, 1.166.19"],
+      ["@tanstack/router-devtools-core", "1.167.6, 1.167.9"],
+      ["@tanstack/router-generator", "1.166.45, 1.166.48"],
+      ["@tanstack/router-plugin", "1.167.38, 1.167.41"],
+      ["@tanstack/router-ssr-query-core", "1.168.3, 1.168.6"],
+      ["@tanstack/router-utils", "1.161.11, 1.161.14"],
+      ["@tanstack/router-vite-plugin", "1.166.53, 1.166.56"],
+      ["@tanstack/solid-router", "1.169.5, 1.169.8"],
+      ["@tanstack/solid-router-devtools", "1.166.16, 1.166.19"],
+      ["@tanstack/solid-router-ssr-query", "1.166.15, 1.166.18"],
+      ["@tanstack/solid-start", "1.167.65, 1.167.68"],
+      ["@tanstack/solid-start-client", "1.166.50, 1.166.53"],
+      ["@tanstack/solid-start-server", "1.166.54, 1.166.57"],
+      ["@tanstack/start-client-core", "1.168.5, 1.168.8"],
+      ["@tanstack/start-fn-stubs", "1.161.9, 1.161.12"],
+      ["@tanstack/start-plugin-core", "1.169.23, 1.169.26"],
+      ["@tanstack/start-server-core", "1.167.33, 1.167.36"],
+      ["@tanstack/start-static-server-functions", "1.166.44, 1.166.47"],
+      ["@tanstack/start-storage-context", "1.166.38, 1.166.41"],
+      ["@tanstack/valibot-adapter", "1.166.12, 1.166.15"],
+      ["@tanstack/virtual-file-routes", "1.161.10, 1.161.13"],
+      ["@tanstack/vue-router", "1.169.5, 1.169.8"],
+      ["@tanstack/vue-router-devtools", "1.166.16, 1.166.19"],
+      ["@tanstack/vue-router-ssr-query", "1.166.15, 1.166.18"],
+      ["@tanstack/vue-start", "1.167.61, 1.167.64"],
+      ["@tanstack/vue-start-client", "1.166.46, 1.166.49"],
+      ["@tanstack/vue-start-server", "1.166.50, 1.166.53"],
+      ["@tanstack/zod-adapter", "1.166.12, 1.166.15"]
+    ];
+    MINI_SHAI_HULUD_ADDITIONAL_PACKAGES = [
+      [
+        "@beproduct/nestjs-auth",
+        "0.1.2, 0.1.3, 0.1.4, 0.1.5, 0.1.6, 0.1.7, 0.1.8, 0.1.9, 0.1.10, 0.1.11, 0.1.12, 0.1.13, 0.1.14, 0.1.15, 0.1.16, 0.1.17, 0.1.18, 0.1.19"
+      ],
+      ["@cap-js/db-service", "2.10.1"],
+      ["@cap-js/postgres", "2.2.2"],
+      ["@cap-js/sqlite", "2.2.2"],
+      ["@dirigible-ai/sdk", "0.6.2, 0.6.3"],
+      ["@draftauth/client", "0.2.1, 0.2.2"],
+      ["@draftauth/core", "0.13.1, 0.13.2"],
+      ["@draftlab/auth", "0.24.1, 0.24.2"],
+      ["@draftlab/auth-router", "0.5.1, 0.5.2"],
+      ["@draftlab/db", "0.16.1, 0.16.2"],
+      ["@mesadev/rest", "0.28.3"],
+      ["@mesadev/saguaro", "0.4.22"],
+      ["@mesadev/sdk", "0.28.3"],
+      ["@mistralai/mistralai", "2.2.2, 2.2.3, 2.2.4"],
+      ["@mistralai/mistralai-azure", "1.7.1, 1.7.2, 1.7.3"],
+      ["@mistralai/mistralai-gcp", "1.7.1, 1.7.2, 1.7.3"],
+      ["@ml-toolkit-ts/preprocessing", "1.0.2, 1.0.3"],
+      ["@ml-toolkit-ts/xgboost", "1.0.3, 1.0.4"],
+      ["@opensearch-project/opensearch", "3.5.3, 3.6.2, 3.7.0, 3.8.0"],
+      ["@squawk/airport-data", "0.7.4, 0.7.5, 0.7.6, 0.7.7, 0.7.8"],
+      ["@squawk/airports", "0.6.2, 0.6.3, 0.6.4, 0.6.5, 0.6.6"],
+      ["@squawk/airspace", "0.8.1, 0.8.2, 0.8.3, 0.8.4, 0.8.5"],
+      ["@squawk/airspace-data", "0.5.3, 0.5.4, 0.5.5, 0.5.6, 0.5.7"],
+      ["@squawk/airway-data", "0.5.4, 0.5.5, 0.5.6, 0.5.7, 0.5.8"],
+      ["@squawk/airways", "0.4.2, 0.4.3, 0.4.4, 0.4.5, 0.4.6"],
+      ["@squawk/fix-data", "0.6.4, 0.6.5, 0.6.6, 0.6.7, 0.6.8"],
+      ["@squawk/fixes", "0.3.2, 0.3.3, 0.3.4, 0.3.5, 0.3.6"],
+      ["@squawk/flight-math", "0.5.4, 0.5.5, 0.5.6, 0.5.7, 0.5.8"],
+      ["@squawk/flightplan", "0.5.2, 0.5.3, 0.5.4, 0.5.5, 0.5.6"],
+      ["@squawk/geo", "0.4.4, 0.4.5, 0.4.6, 0.4.7, 0.4.8"],
+      ["@squawk/icao-registry", "0.5.2, 0.5.3, 0.5.4, 0.5.5, 0.5.6"],
+      ["@squawk/icao-registry-data", "0.8.4, 0.8.5, 0.8.6, 0.8.7, 0.8.8"],
+      ["@squawk/mcp", "0.9.1, 0.9.2, 0.9.3, 0.9.4, 0.9.5"],
+      ["@squawk/navaid-data", "0.6.4, 0.6.5, 0.6.6, 0.6.7, 0.6.8"],
+      ["@squawk/navaids", "0.4.2, 0.4.3, 0.4.4, 0.4.5, 0.4.6"],
+      ["@squawk/notams", "0.3.6, 0.3.7, 0.3.8, 0.3.9, 0.3.10"],
+      ["@squawk/procedure-data", "0.7.3, 0.7.4, 0.7.5, 0.7.6, 0.7.7"],
+      ["@squawk/procedures", "0.5.2, 0.5.3, 0.5.4, 0.5.5, 0.5.6"],
+      ["@squawk/types", "0.8.1, 0.8.2, 0.8.3, 0.8.4, 0.8.5"],
+      ["@squawk/units", "0.4.3, 0.4.4, 0.4.5, 0.4.6, 0.4.7"],
+      ["@squawk/weather", "0.5.6, 0.5.7, 0.5.8, 0.5.9, 0.5.10"],
+      ["@supersurkhet/cli", "0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6, 0.0.7"],
+      ["@supersurkhet/sdk", "0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6, 0.0.7"],
+      ["@tallyui/components", "1.0.1, 1.0.2, 1.0.3"],
+      ["@tallyui/connector-medusa", "1.0.1, 1.0.2, 1.0.3"],
+      ["@tallyui/connector-shopify", "1.0.1, 1.0.2, 1.0.3"],
+      ["@tallyui/connector-vendure", "1.0.1, 1.0.2, 1.0.3"],
+      ["@tallyui/connector-woocommerce", "1.0.1, 1.0.2, 1.0.3"],
+      ["@tallyui/core", "0.2.1, 0.2.2, 0.2.3"],
+      ["@tallyui/database", "1.0.1, 1.0.2, 1.0.3"],
+      ["@tallyui/pos", "0.1.1, 0.1.2, 0.1.3"],
+      ["@tallyui/storage-sqlite", "0.2.1, 0.2.2, 0.2.3"],
+      ["@tallyui/theme", "0.2.1, 0.2.2, 0.2.3"],
+      ["@taskflow-corp/cli", "0.1.24, 0.1.25, 0.1.26, 0.1.27, 0.1.28, 0.1.29"],
+      ["@tolka/cli", "1.0.2, 1.0.3, 1.0.4, 1.0.5, 1.0.6"],
+      ["@uipath/access-policy-sdk", "0.3.1"],
+      ["@uipath/access-policy-tool", "0.3.1"],
+      ["@uipath/admin-tool", "0.1.1"],
+      ["@uipath/agent-sdk", "1.0.2"],
+      ["@uipath/agent-tool", "1.0.1"],
+      ["@uipath/agent.sdk", "0.0.18"],
+      ["@uipath/aops-policy-tool", "0.3.1"],
+      ["@uipath/ap-chat", "1.5.7"],
+      ["@uipath/api-workflow-tool", "1.0.1"],
+      ["@uipath/apollo-core", "5.9.2"],
+      ["@uipath/apollo-react", "4.24.5"],
+      ["@uipath/apollo-wind", "2.16.2"],
+      ["@uipath/auth", "1.0.1"],
+      ["@uipath/case-tool", "1.0.1"],
+      ["@uipath/cli", "1.0.1"],
+      ["@uipath/codedagent-tool", "1.0.1"],
+      ["@uipath/codedagents-tool", "0.1.12"],
+      ["@uipath/codedapp-tool", "1.0.1"],
+      ["@uipath/common", "1.0.1"],
+      ["@uipath/context-grounding-tool", "0.1.1"],
+      ["@uipath/data-fabric-tool", "1.0.2"],
+      ["@uipath/docsai-tool", "1.0.1"],
+      ["@uipath/filesystem", "1.0.1"],
+      ["@uipath/flow-tool", "1.0.2"],
+      ["@uipath/functions-tool", "1.0.1"],
+      ["@uipath/gov-tool", "0.3.1"],
+      ["@uipath/identity-tool", "0.1.1"],
+      ["@uipath/insights-sdk", "1.0.1"],
+      ["@uipath/insights-tool", "1.0.1"],
+      ["@uipath/integrationservice-sdk", "1.0.2"],
+      ["@uipath/integrationservice-tool", "1.0.2"],
+      ["@uipath/llmgw-tool", "1.0.1"],
+      ["@uipath/maestro-sdk", "1.0.1"],
+      ["@uipath/maestro-tool", "1.0.1"],
+      ["@uipath/orchestrator-tool", "1.0.1"],
+      ["@uipath/packager-tool-apiworkflow", "0.0.19"],
+      ["@uipath/packager-tool-bpmn", "0.0.9"],
+      ["@uipath/packager-tool-case", "0.0.9"],
+      ["@uipath/packager-tool-connector", "0.0.19"],
+      ["@uipath/packager-tool-flow", "0.0.19"],
+      ["@uipath/packager-tool-functions", "0.1.1"],
+      ["@uipath/packager-tool-webapp", "1.0.6"],
+      ["@uipath/packager-tool-workflowcompiler", "0.0.16"],
+      ["@uipath/packager-tool-workflowcompiler-browser", "0.0.34"],
+      ["@uipath/platform-tool", "1.0.1"],
+      ["@uipath/project-packager", "1.1.16"],
+      ["@uipath/resource-tool", "1.0.1"],
+      ["@uipath/resourcecatalog-tool", "0.1.1"],
+      ["@uipath/resources-tool", "0.1.11"],
+      ["@uipath/robot", "1.3.4"],
+      ["@uipath/rpa-legacy-tool", "1.0.1"],
+      ["@uipath/rpa-tool", "0.9.5"],
+      ["@uipath/solution-packager", "0.0.35"],
+      ["@uipath/solution-tool", "1.0.1"],
+      ["@uipath/solutionpackager-sdk", "1.0.11"],
+      ["@uipath/solutionpackager-tool-core", "0.0.34"],
+      ["@uipath/tasks-tool", "1.0.1"],
+      ["@uipath/telemetry", "0.0.7"],
+      ["@uipath/test-manager-tool", "1.0.2"],
+      ["@uipath/tool-workflowcompiler", "0.0.12"],
+      ["@uipath/traces-tool", "1.0.1"],
+      ["@uipath/ui-widgets-multi-file-upload", "1.0.1"],
+      ["@uipath/uipath-python-bridge", "1.0.1"],
+      ["@uipath/vertical-solutions-tool", "1.0.1"],
+      ["@uipath/vss", "0.1.6"],
+      ["@uipath/widget.sdk", "1.2.3"],
+      ["agentwork-cli", "0.1.4, 0.1.5"],
+      ["cmux-agent-mcp", "0.1.3, 0.1.4, 0.1.5, 0.1.6, 0.1.7, 0.1.8"],
+      ["cross-stitch", "1.1.3, 1.1.4, 1.1.5, 1.1.6, 1.1.7"],
+      ["git-branch-selector", "1.3.3, 1.3.4, 1.3.5, 1.3.6, 1.3.7"],
+      ["git-git-git", "1.0.8, 1.0.9, 1.0.10, 1.0.11, 1.0.12"],
+      ["guardrails-ai", "0.10.1"],
+      ["intercom-client", "7.0.4"],
+      ["lightning", "2.6.2, 2.6.3"],
+      ["mbt", "1.2.48"],
+      ["mistralai", "2.4.6"],
+      ["ml-toolkit-ts", "1.0.4, 1.0.5"],
+      ["nextmove-mcp", "0.1.3, 0.1.4, 0.1.5, 0.1.6, 0.1.7"],
+      ["safe-action", "0.8.3, 0.8.4"],
+      ["ts-dna", "3.0.1, 3.0.2, 3.0.3, 3.0.4, 3.0.5"],
+      ["wot-api", "0.8.1, 0.8.2, 0.8.3, 0.8.4"]
+    ];
+    MALICIOUS_PACKAGES = [
+      // SANDWORM_MODE typosquats targeting MCP SDK
+      {
+        name: "@anthropic-ai/model-context-protocol-sdk",
+        type: "typosquat",
+        description: "Typosquat of the official @modelcontextprotocol/sdk. Part of SANDWORM_MODE supply chain campaign targeting MCP developers.",
+        legitimatePackage: "@modelcontextprotocol/sdk"
+      },
+      {
+        name: "anthropic-mcp-sdk",
+        type: "typosquat",
+        description: "Typosquat targeting developers searching for the Anthropic MCP SDK.",
+        legitimatePackage: "@modelcontextprotocol/sdk"
+      },
+      {
+        name: "mcp-sdk-anthropic",
+        type: "typosquat",
+        description: "Typosquat with reversed naming convention targeting MCP SDK users.",
+        legitimatePackage: "@modelcontextprotocol/sdk"
+      },
+      {
+        name: "@anthropic/mcp-server",
+        type: "typosquat",
+        description: "Typosquat using incorrect scope for Anthropic MCP servers (correct scope is @anthropics or @modelcontextprotocol).",
+        legitimatePackage: "@modelcontextprotocol/sdk"
+      },
+      // Compromised legitimate packages
+      {
+        name: "cline",
+        type: "compromised",
+        description: "Clinejection supply chain attack. Compromised npm token used to publish cline@2.3.0 with malicious postinstall script that installed openclaw. ~4,000 downloads in ~8 hour window.",
+        affectedVersions: "2.3.0"
+      },
+      // Known malicious MCP servers
+      {
+        name: "postmark-mcp",
+        type: "malicious",
+        description: "Malicious MCP server impersonating Postmark email service. Version 1.0.16 secretly BCCs every outgoing email to an attacker-controlled domain.",
+        affectedVersions: "1.0.16"
+      },
+      {
+        name: "openclaw",
+        type: "malicious",
+        description: "Malicious package installed by the compromised cline@2.3.0 postinstall script. Part of the Clinejection supply chain attack."
+      },
+      {
+        name: "@tanstack/setup",
+        type: "malicious",
+        description: "Fictitious git dependency used by the May 2026 TanStack/Mini Shai-Hulud npm campaign. Malicious manifests referenced github:tanstack/router#79ac49eedf774dd4b0cfa308722bc463cfe5885c to execute router_init.js during install."
+      },
+      ...TANSTACK_MINI_SHAI_HULUD_PACKAGES.map(([name, affectedVersions]) => ({
+        name,
+        type: "compromised",
+        description: "Compromised @tanstack package version from the May 2026 TanStack/Mini Shai-Hulud npm campaign. Affected versions executed router_init.js at install time, harvested developer/cloud credentials, and attempted npm worm propagation under signed trusted-publisher provenance.",
+        affectedVersions
+      })),
+      ...MINI_SHAI_HULUD_ADDITIONAL_PACKAGES.map(([name, affectedVersions]) => ({
+        name,
+        type: "compromised",
+        description: "Compromised package version from the May 2026 Mini Shai-Hulud supply-chain campaign. Treat any matching lockfile, cache, CI runner, or developer host as potentially compromised and rotate accessible credentials after persistence is removed.",
+        affectedVersions
+      })),
+      // AI-specific typosquats from PyPI/npm campaigns
+      {
+        name: "aliyun-ai-labs-snippets-sdk",
+        type: "malicious",
+        description: "Malicious PyPI package delivering infostealer hidden inside PyTorch model files."
+      },
+      {
+        name: "ai-labs-snippets-sdk",
+        type: "malicious",
+        description: "Malicious PyPI package delivering infostealer hidden inside PyTorch model files."
+      },
+      {
+        name: "aliyun-ai-labs-sdk",
+        type: "malicious",
+        description: "Malicious PyPI package delivering infostealer hidden inside PyTorch model files."
+      }
+    ];
+    VULNERABLE_SERVERS = [
+      {
+        packageName: "@anthropics/mcp-server-git",
+        cveIds: ["CVE-2025-68145", "CVE-2025-68143", "CVE-2025-68144"],
+        description: "Anthropic's official MCP git server has path traversal, unrestricted git_init, and argument injection vulnerabilities."
+      },
+      {
+        packageName: "mcp-server-git",
+        cveIds: ["CVE-2025-68145", "CVE-2025-68143", "CVE-2025-68144"],
+        description: "MCP git server (community package) shares vulnerabilities with the official Anthropic version."
+      },
+      {
+        packageName: "mcp-remote",
+        cveIds: ["CVE-2025-6514"],
+        description: "OS command injection via malicious authorization_endpoint. The authorization URL is passed to the system shell without sanitization."
+      }
+    ];
+  }
+});
+
 // node_modules/yaml/dist/nodes/identity.js
 var require_identity = __commonJS({
   "node_modules/yaml/dist/nodes/identity.js"(exports) {
@@ -7341,322 +7657,6 @@ var require_dist = __commonJS({
   }
 });
 
-// src/threat-intel/cve-database.ts
-function checkPackageName(packageName, version) {
-  const match = MALICIOUS_PACKAGES.find((pkg) => pkg.name === packageName);
-  if (!match) return void 0;
-  if (match.type === "compromised" && match.affectedVersions && version) {
-    const affectedVersionList = match.affectedVersions.split(",").map((v) => v.trim());
-    if (!affectedVersionList.includes(version)) {
-      return void 0;
-    }
-  }
-  return match;
-}
-function checkServerPackage(command, args) {
-  for (const server of VULNERABLE_SERVERS) {
-    if (command === server.packageName || command.endsWith(`/${server.packageName}`)) {
-      return server;
-    }
-  }
-  for (const arg of args) {
-    if (arg.startsWith("-")) continue;
-    for (const server of VULNERABLE_SERVERS) {
-      if (arg === server.packageName || arg.startsWith(`${server.packageName}@`)) {
-        return server;
-      }
-    }
-  }
-  return void 0;
-}
-var TANSTACK_MINI_SHAI_HULUD_PACKAGES, MINI_SHAI_HULUD_ADDITIONAL_PACKAGES, MALICIOUS_PACKAGES, VULNERABLE_SERVERS;
-var init_cve_database = __esm({
-  "src/threat-intel/cve-database.ts"() {
-    "use strict";
-    TANSTACK_MINI_SHAI_HULUD_PACKAGES = [
-      ["@tanstack/arktype-adapter", "1.166.12, 1.166.15"],
-      ["@tanstack/eslint-plugin-router", "1.161.9, 1.161.12"],
-      ["@tanstack/eslint-plugin-start", "0.0.4, 0.0.7"],
-      ["@tanstack/history", "1.161.9, 1.161.12"],
-      ["@tanstack/nitro-v2-vite-plugin", "1.154.12, 1.154.15"],
-      ["@tanstack/react-router", "1.169.5, 1.169.8"],
-      ["@tanstack/react-router-devtools", "1.166.16, 1.166.19"],
-      ["@tanstack/react-router-ssr-query", "1.166.15, 1.166.18"],
-      ["@tanstack/react-start", "1.167.68, 1.167.71"],
-      ["@tanstack/react-start-client", "1.166.51, 1.166.54"],
-      ["@tanstack/react-start-rsc", "0.0.47, 0.0.50"],
-      ["@tanstack/react-start-server", "1.166.55, 1.166.58"],
-      ["@tanstack/router-cli", "1.166.46, 1.166.49"],
-      ["@tanstack/router-core", "1.169.5, 1.169.8"],
-      ["@tanstack/router-devtools", "1.166.16, 1.166.19"],
-      ["@tanstack/router-devtools-core", "1.167.6, 1.167.9"],
-      ["@tanstack/router-generator", "1.166.45, 1.166.48"],
-      ["@tanstack/router-plugin", "1.167.38, 1.167.41"],
-      ["@tanstack/router-ssr-query-core", "1.168.3, 1.168.6"],
-      ["@tanstack/router-utils", "1.161.11, 1.161.14"],
-      ["@tanstack/router-vite-plugin", "1.166.53, 1.166.56"],
-      ["@tanstack/solid-router", "1.169.5, 1.169.8"],
-      ["@tanstack/solid-router-devtools", "1.166.16, 1.166.19"],
-      ["@tanstack/solid-router-ssr-query", "1.166.15, 1.166.18"],
-      ["@tanstack/solid-start", "1.167.65, 1.167.68"],
-      ["@tanstack/solid-start-client", "1.166.50, 1.166.53"],
-      ["@tanstack/solid-start-server", "1.166.54, 1.166.57"],
-      ["@tanstack/start-client-core", "1.168.5, 1.168.8"],
-      ["@tanstack/start-fn-stubs", "1.161.9, 1.161.12"],
-      ["@tanstack/start-plugin-core", "1.169.23, 1.169.26"],
-      ["@tanstack/start-server-core", "1.167.33, 1.167.36"],
-      ["@tanstack/start-static-server-functions", "1.166.44, 1.166.47"],
-      ["@tanstack/start-storage-context", "1.166.38, 1.166.41"],
-      ["@tanstack/valibot-adapter", "1.166.12, 1.166.15"],
-      ["@tanstack/virtual-file-routes", "1.161.10, 1.161.13"],
-      ["@tanstack/vue-router", "1.169.5, 1.169.8"],
-      ["@tanstack/vue-router-devtools", "1.166.16, 1.166.19"],
-      ["@tanstack/vue-router-ssr-query", "1.166.15, 1.166.18"],
-      ["@tanstack/vue-start", "1.167.61, 1.167.64"],
-      ["@tanstack/vue-start-client", "1.166.46, 1.166.49"],
-      ["@tanstack/vue-start-server", "1.166.50, 1.166.53"],
-      ["@tanstack/zod-adapter", "1.166.12, 1.166.15"]
-    ];
-    MINI_SHAI_HULUD_ADDITIONAL_PACKAGES = [
-      [
-        "@beproduct/nestjs-auth",
-        "0.1.2, 0.1.3, 0.1.4, 0.1.5, 0.1.6, 0.1.7, 0.1.8, 0.1.9, 0.1.10, 0.1.11, 0.1.12, 0.1.13, 0.1.14, 0.1.15, 0.1.16, 0.1.17, 0.1.18, 0.1.19"
-      ],
-      ["@cap-js/db-service", "2.10.1"],
-      ["@cap-js/postgres", "2.2.2"],
-      ["@cap-js/sqlite", "2.2.2"],
-      ["@dirigible-ai/sdk", "0.6.2, 0.6.3"],
-      ["@draftauth/client", "0.2.1, 0.2.2"],
-      ["@draftauth/core", "0.13.1, 0.13.2"],
-      ["@draftlab/auth", "0.24.1, 0.24.2"],
-      ["@draftlab/auth-router", "0.5.1, 0.5.2"],
-      ["@draftlab/db", "0.16.1, 0.16.2"],
-      ["@mesadev/rest", "0.28.3"],
-      ["@mesadev/saguaro", "0.4.22"],
-      ["@mesadev/sdk", "0.28.3"],
-      ["@mistralai/mistralai", "2.2.2, 2.2.3, 2.2.4"],
-      ["@mistralai/mistralai-azure", "1.7.1, 1.7.2, 1.7.3"],
-      ["@mistralai/mistralai-gcp", "1.7.1, 1.7.2, 1.7.3"],
-      ["@ml-toolkit-ts/preprocessing", "1.0.2, 1.0.3"],
-      ["@ml-toolkit-ts/xgboost", "1.0.3, 1.0.4"],
-      ["@opensearch-project/opensearch", "3.5.3, 3.6.2, 3.7.0, 3.8.0"],
-      ["@squawk/airport-data", "0.7.4, 0.7.5, 0.7.6, 0.7.7, 0.7.8"],
-      ["@squawk/airports", "0.6.2, 0.6.3, 0.6.4, 0.6.5, 0.6.6"],
-      ["@squawk/airspace", "0.8.1, 0.8.2, 0.8.3, 0.8.4, 0.8.5"],
-      ["@squawk/airspace-data", "0.5.3, 0.5.4, 0.5.5, 0.5.6, 0.5.7"],
-      ["@squawk/airway-data", "0.5.4, 0.5.5, 0.5.6, 0.5.7, 0.5.8"],
-      ["@squawk/airways", "0.4.2, 0.4.3, 0.4.4, 0.4.5, 0.4.6"],
-      ["@squawk/fix-data", "0.6.4, 0.6.5, 0.6.6, 0.6.7, 0.6.8"],
-      ["@squawk/fixes", "0.3.2, 0.3.3, 0.3.4, 0.3.5, 0.3.6"],
-      ["@squawk/flight-math", "0.5.4, 0.5.5, 0.5.6, 0.5.7, 0.5.8"],
-      ["@squawk/flightplan", "0.5.2, 0.5.3, 0.5.4, 0.5.5, 0.5.6"],
-      ["@squawk/geo", "0.4.4, 0.4.5, 0.4.6, 0.4.7, 0.4.8"],
-      ["@squawk/icao-registry", "0.5.2, 0.5.3, 0.5.4, 0.5.5, 0.5.6"],
-      ["@squawk/icao-registry-data", "0.8.4, 0.8.5, 0.8.6, 0.8.7, 0.8.8"],
-      ["@squawk/mcp", "0.9.1, 0.9.2, 0.9.3, 0.9.4, 0.9.5"],
-      ["@squawk/navaid-data", "0.6.4, 0.6.5, 0.6.6, 0.6.7, 0.6.8"],
-      ["@squawk/navaids", "0.4.2, 0.4.3, 0.4.4, 0.4.5, 0.4.6"],
-      ["@squawk/notams", "0.3.6, 0.3.7, 0.3.8, 0.3.9, 0.3.10"],
-      ["@squawk/procedure-data", "0.7.3, 0.7.4, 0.7.5, 0.7.6, 0.7.7"],
-      ["@squawk/procedures", "0.5.2, 0.5.3, 0.5.4, 0.5.5, 0.5.6"],
-      ["@squawk/types", "0.8.1, 0.8.2, 0.8.3, 0.8.4, 0.8.5"],
-      ["@squawk/units", "0.4.3, 0.4.4, 0.4.5, 0.4.6, 0.4.7"],
-      ["@squawk/weather", "0.5.6, 0.5.7, 0.5.8, 0.5.9, 0.5.10"],
-      ["@supersurkhet/cli", "0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6, 0.0.7"],
-      ["@supersurkhet/sdk", "0.0.2, 0.0.3, 0.0.4, 0.0.5, 0.0.6, 0.0.7"],
-      ["@tallyui/components", "1.0.1, 1.0.2, 1.0.3"],
-      ["@tallyui/connector-medusa", "1.0.1, 1.0.2, 1.0.3"],
-      ["@tallyui/connector-shopify", "1.0.1, 1.0.2, 1.0.3"],
-      ["@tallyui/connector-vendure", "1.0.1, 1.0.2, 1.0.3"],
-      ["@tallyui/connector-woocommerce", "1.0.1, 1.0.2, 1.0.3"],
-      ["@tallyui/core", "0.2.1, 0.2.2, 0.2.3"],
-      ["@tallyui/database", "1.0.1, 1.0.2, 1.0.3"],
-      ["@tallyui/pos", "0.1.1, 0.1.2, 0.1.3"],
-      ["@tallyui/storage-sqlite", "0.2.1, 0.2.2, 0.2.3"],
-      ["@tallyui/theme", "0.2.1, 0.2.2, 0.2.3"],
-      ["@taskflow-corp/cli", "0.1.24, 0.1.25, 0.1.26, 0.1.27, 0.1.28, 0.1.29"],
-      ["@tolka/cli", "1.0.2, 1.0.3, 1.0.4, 1.0.5, 1.0.6"],
-      ["@uipath/access-policy-sdk", "0.3.1"],
-      ["@uipath/access-policy-tool", "0.3.1"],
-      ["@uipath/admin-tool", "0.1.1"],
-      ["@uipath/agent-sdk", "1.0.2"],
-      ["@uipath/agent-tool", "1.0.1"],
-      ["@uipath/agent.sdk", "0.0.18"],
-      ["@uipath/aops-policy-tool", "0.3.1"],
-      ["@uipath/ap-chat", "1.5.7"],
-      ["@uipath/api-workflow-tool", "1.0.1"],
-      ["@uipath/apollo-core", "5.9.2"],
-      ["@uipath/apollo-react", "4.24.5"],
-      ["@uipath/apollo-wind", "2.16.2"],
-      ["@uipath/auth", "1.0.1"],
-      ["@uipath/case-tool", "1.0.1"],
-      ["@uipath/cli", "1.0.1"],
-      ["@uipath/codedagent-tool", "1.0.1"],
-      ["@uipath/codedagents-tool", "0.1.12"],
-      ["@uipath/codedapp-tool", "1.0.1"],
-      ["@uipath/common", "1.0.1"],
-      ["@uipath/context-grounding-tool", "0.1.1"],
-      ["@uipath/data-fabric-tool", "1.0.2"],
-      ["@uipath/docsai-tool", "1.0.1"],
-      ["@uipath/filesystem", "1.0.1"],
-      ["@uipath/flow-tool", "1.0.2"],
-      ["@uipath/functions-tool", "1.0.1"],
-      ["@uipath/gov-tool", "0.3.1"],
-      ["@uipath/identity-tool", "0.1.1"],
-      ["@uipath/insights-sdk", "1.0.1"],
-      ["@uipath/insights-tool", "1.0.1"],
-      ["@uipath/integrationservice-sdk", "1.0.2"],
-      ["@uipath/integrationservice-tool", "1.0.2"],
-      ["@uipath/llmgw-tool", "1.0.1"],
-      ["@uipath/maestro-sdk", "1.0.1"],
-      ["@uipath/maestro-tool", "1.0.1"],
-      ["@uipath/orchestrator-tool", "1.0.1"],
-      ["@uipath/packager-tool-apiworkflow", "0.0.19"],
-      ["@uipath/packager-tool-bpmn", "0.0.9"],
-      ["@uipath/packager-tool-case", "0.0.9"],
-      ["@uipath/packager-tool-connector", "0.0.19"],
-      ["@uipath/packager-tool-flow", "0.0.19"],
-      ["@uipath/packager-tool-functions", "0.1.1"],
-      ["@uipath/packager-tool-webapp", "1.0.6"],
-      ["@uipath/packager-tool-workflowcompiler", "0.0.16"],
-      ["@uipath/packager-tool-workflowcompiler-browser", "0.0.34"],
-      ["@uipath/platform-tool", "1.0.1"],
-      ["@uipath/project-packager", "1.1.16"],
-      ["@uipath/resource-tool", "1.0.1"],
-      ["@uipath/resourcecatalog-tool", "0.1.1"],
-      ["@uipath/resources-tool", "0.1.11"],
-      ["@uipath/robot", "1.3.4"],
-      ["@uipath/rpa-legacy-tool", "1.0.1"],
-      ["@uipath/rpa-tool", "0.9.5"],
-      ["@uipath/solution-packager", "0.0.35"],
-      ["@uipath/solution-tool", "1.0.1"],
-      ["@uipath/solutionpackager-sdk", "1.0.11"],
-      ["@uipath/solutionpackager-tool-core", "0.0.34"],
-      ["@uipath/tasks-tool", "1.0.1"],
-      ["@uipath/telemetry", "0.0.7"],
-      ["@uipath/test-manager-tool", "1.0.2"],
-      ["@uipath/tool-workflowcompiler", "0.0.12"],
-      ["@uipath/traces-tool", "1.0.1"],
-      ["@uipath/ui-widgets-multi-file-upload", "1.0.1"],
-      ["@uipath/uipath-python-bridge", "1.0.1"],
-      ["@uipath/vertical-solutions-tool", "1.0.1"],
-      ["@uipath/vss", "0.1.6"],
-      ["@uipath/widget.sdk", "1.2.3"],
-      ["agentwork-cli", "0.1.4, 0.1.5"],
-      ["cmux-agent-mcp", "0.1.3, 0.1.4, 0.1.5, 0.1.6, 0.1.7, 0.1.8"],
-      ["cross-stitch", "1.1.3, 1.1.4, 1.1.5, 1.1.6, 1.1.7"],
-      ["git-branch-selector", "1.3.3, 1.3.4, 1.3.5, 1.3.6, 1.3.7"],
-      ["git-git-git", "1.0.8, 1.0.9, 1.0.10, 1.0.11, 1.0.12"],
-      ["guardrails-ai", "0.10.1"],
-      ["intercom-client", "7.0.4"],
-      ["lightning", "2.6.2, 2.6.3"],
-      ["mbt", "1.2.48"],
-      ["mistralai", "2.4.6"],
-      ["ml-toolkit-ts", "1.0.4, 1.0.5"],
-      ["nextmove-mcp", "0.1.3, 0.1.4, 0.1.5, 0.1.6, 0.1.7"],
-      ["safe-action", "0.8.3, 0.8.4"],
-      ["ts-dna", "3.0.1, 3.0.2, 3.0.3, 3.0.4, 3.0.5"],
-      ["wot-api", "0.8.1, 0.8.2, 0.8.3, 0.8.4"]
-    ];
-    MALICIOUS_PACKAGES = [
-      // SANDWORM_MODE typosquats targeting MCP SDK
-      {
-        name: "@anthropic-ai/model-context-protocol-sdk",
-        type: "typosquat",
-        description: "Typosquat of the official @modelcontextprotocol/sdk. Part of SANDWORM_MODE supply chain campaign targeting MCP developers.",
-        legitimatePackage: "@modelcontextprotocol/sdk"
-      },
-      {
-        name: "anthropic-mcp-sdk",
-        type: "typosquat",
-        description: "Typosquat targeting developers searching for the Anthropic MCP SDK.",
-        legitimatePackage: "@modelcontextprotocol/sdk"
-      },
-      {
-        name: "mcp-sdk-anthropic",
-        type: "typosquat",
-        description: "Typosquat with reversed naming convention targeting MCP SDK users.",
-        legitimatePackage: "@modelcontextprotocol/sdk"
-      },
-      {
-        name: "@anthropic/mcp-server",
-        type: "typosquat",
-        description: "Typosquat using incorrect scope for Anthropic MCP servers (correct scope is @anthropics or @modelcontextprotocol).",
-        legitimatePackage: "@modelcontextprotocol/sdk"
-      },
-      // Compromised legitimate packages
-      {
-        name: "cline",
-        type: "compromised",
-        description: "Clinejection supply chain attack. Compromised npm token used to publish cline@2.3.0 with malicious postinstall script that installed openclaw. ~4,000 downloads in ~8 hour window.",
-        affectedVersions: "2.3.0"
-      },
-      // Known malicious MCP servers
-      {
-        name: "postmark-mcp",
-        type: "malicious",
-        description: "Malicious MCP server impersonating Postmark email service. Version 1.0.16 secretly BCCs every outgoing email to an attacker-controlled domain.",
-        affectedVersions: "1.0.16"
-      },
-      {
-        name: "openclaw",
-        type: "malicious",
-        description: "Malicious package installed by the compromised cline@2.3.0 postinstall script. Part of the Clinejection supply chain attack."
-      },
-      {
-        name: "@tanstack/setup",
-        type: "malicious",
-        description: "Fictitious git dependency used by the May 2026 TanStack/Mini Shai-Hulud npm campaign. Malicious manifests referenced github:tanstack/router#79ac49eedf774dd4b0cfa308722bc463cfe5885c to execute router_init.js during install."
-      },
-      ...TANSTACK_MINI_SHAI_HULUD_PACKAGES.map(([name, affectedVersions]) => ({
-        name,
-        type: "compromised",
-        description: "Compromised @tanstack package version from the May 2026 TanStack/Mini Shai-Hulud npm campaign. Affected versions executed router_init.js at install time, harvested developer/cloud credentials, and attempted npm worm propagation under signed trusted-publisher provenance.",
-        affectedVersions
-      })),
-      ...MINI_SHAI_HULUD_ADDITIONAL_PACKAGES.map(([name, affectedVersions]) => ({
-        name,
-        type: "compromised",
-        description: "Compromised package version from the May 2026 Mini Shai-Hulud supply-chain campaign. Treat any matching lockfile, cache, CI runner, or developer host as potentially compromised and rotate accessible credentials after persistence is removed.",
-        affectedVersions
-      })),
-      // AI-specific typosquats from PyPI/npm campaigns
-      {
-        name: "aliyun-ai-labs-snippets-sdk",
-        type: "malicious",
-        description: "Malicious PyPI package delivering infostealer hidden inside PyTorch model files."
-      },
-      {
-        name: "ai-labs-snippets-sdk",
-        type: "malicious",
-        description: "Malicious PyPI package delivering infostealer hidden inside PyTorch model files."
-      },
-      {
-        name: "aliyun-ai-labs-sdk",
-        type: "malicious",
-        description: "Malicious PyPI package delivering infostealer hidden inside PyTorch model files."
-      }
-    ];
-    VULNERABLE_SERVERS = [
-      {
-        packageName: "@anthropics/mcp-server-git",
-        cveIds: ["CVE-2025-68145", "CVE-2025-68143", "CVE-2025-68144"],
-        description: "Anthropic's official MCP git server has path traversal, unrestricted git_init, and argument injection vulnerabilities."
-      },
-      {
-        packageName: "mcp-server-git",
-        cveIds: ["CVE-2025-68145", "CVE-2025-68143", "CVE-2025-68144"],
-        description: "MCP git server (community package) shares vulnerabilities with the official Anthropic version."
-      },
-      {
-        packageName: "mcp-remote",
-        cveIds: ["CVE-2025-6514"],
-        description: "OS command injection via malicious authorization_endpoint. The authorization URL is passed to the system shell without sanitization."
-      }
-    ];
-  }
-});
-
 // src/fingerprint.ts
 import { createHash } from "crypto";
 function fingerprintFinding(finding) {
@@ -13560,17 +13560,7 @@ import { existsSync as existsSync7 } from "fs";
 import { appendFileSync, mkdirSync as mkdirSync6, writeFileSync as writeFileSync6 } from "fs";
 
 // src/scanner/discovery.ts
-import {
-  readFileSync,
-  existsSync,
-  readdirSync,
-  readlinkSync,
-  statSync,
-  lstatSync,
-  openSync,
-  readSync,
-  closeSync
-} from "fs";
+import { readFileSync, existsSync, readdirSync, readlinkSync, statSync, lstatSync } from "fs";
 import { join, basename, extname, relative } from "path";
 
 // src/source-context.ts
@@ -13633,701 +13623,6 @@ function toPosixPath(filePath) {
   return filePath.replace(/\\/g, "/");
 }
 
-// node_modules/smol-toml/dist/date.js
-var DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2})?[T ]?(?:(\d{2}):\d{2}(?::\d{2}(?:\.\d+)?)?)?(Z|[-+]\d{2}:\d{2})?$/i;
-var TomlDate = class _TomlDate extends Date {
-  #hasDate = false;
-  #hasTime = false;
-  #offset = null;
-  constructor(date) {
-    let hasDate = true;
-    let hasTime = true;
-    let offset = "Z";
-    if (typeof date === "string") {
-      let match = date.match(DATE_TIME_RE);
-      if (match) {
-        if (!match[1]) {
-          hasDate = false;
-          date = `0000-01-01T${date}`;
-        }
-        hasTime = !!match[2];
-        hasTime && date[10] === " " && (date = date.replace(" ", "T"));
-        if (match[2] && +match[2] > 23) {
-          date = "";
-        } else {
-          offset = match[3] || null;
-          date = date.toUpperCase();
-          if (!offset && hasTime)
-            date += "Z";
-        }
-      } else {
-        date = "";
-      }
-    }
-    super(date);
-    if (!isNaN(this.getTime())) {
-      this.#hasDate = hasDate;
-      this.#hasTime = hasTime;
-      this.#offset = offset;
-    }
-  }
-  isDateTime() {
-    return this.#hasDate && this.#hasTime;
-  }
-  isLocal() {
-    return !this.#hasDate || !this.#hasTime || !this.#offset;
-  }
-  isDate() {
-    return this.#hasDate && !this.#hasTime;
-  }
-  isTime() {
-    return this.#hasTime && !this.#hasDate;
-  }
-  isValid() {
-    return this.#hasDate || this.#hasTime;
-  }
-  toISOString() {
-    let iso = super.toISOString();
-    if (this.isDate())
-      return iso.slice(0, 10);
-    if (this.isTime())
-      return iso.slice(11, 23);
-    if (this.#offset === null)
-      return iso.slice(0, -1);
-    if (this.#offset === "Z")
-      return iso;
-    let offset = +this.#offset.slice(1, 3) * 60 + +this.#offset.slice(4, 6);
-    offset = this.#offset[0] === "-" ? offset : -offset;
-    let offsetDate = new Date(this.getTime() - offset * 6e4);
-    return offsetDate.toISOString().slice(0, -1) + this.#offset;
-  }
-  static wrapAsOffsetDateTime(jsDate, offset = "Z") {
-    let date = new _TomlDate(jsDate);
-    date.#offset = offset;
-    return date;
-  }
-  static wrapAsLocalDateTime(jsDate) {
-    let date = new _TomlDate(jsDate);
-    date.#offset = null;
-    return date;
-  }
-  static wrapAsLocalDate(jsDate) {
-    let date = new _TomlDate(jsDate);
-    date.#hasTime = false;
-    date.#offset = null;
-    return date;
-  }
-  static wrapAsLocalTime(jsDate) {
-    let date = new _TomlDate(jsDate);
-    date.#hasDate = false;
-    date.#offset = null;
-    return date;
-  }
-};
-
-// node_modules/smol-toml/dist/error.js
-function getLineColFromPtr(string, ptr) {
-  let lines = string.slice(0, ptr).split(/\r\n|\n|\r/g);
-  return [lines.length, lines.pop().length + 1];
-}
-function makeCodeBlock(string, line, column) {
-  let lines = string.split(/\r\n|\n|\r/g);
-  let codeblock = "";
-  let numberLen = (Math.log10(line + 1) | 0) + 1;
-  for (let i = line - 1; i <= line + 1; i++) {
-    let l = lines[i - 1];
-    if (!l)
-      continue;
-    codeblock += i.toString().padEnd(numberLen, " ");
-    codeblock += ":  ";
-    codeblock += l;
-    codeblock += "\n";
-    if (i === line) {
-      codeblock += " ".repeat(numberLen + column + 2);
-      codeblock += "^\n";
-    }
-  }
-  return codeblock;
-}
-var TomlError = class extends Error {
-  line;
-  column;
-  codeblock;
-  constructor(message, options) {
-    const [line, column] = getLineColFromPtr(options.toml, options.ptr);
-    const codeblock = makeCodeBlock(options.toml, line, column);
-    super(`Invalid TOML document: ${message}
-
-${codeblock}`, options);
-    this.line = line;
-    this.column = column;
-    this.codeblock = codeblock;
-  }
-};
-
-// node_modules/smol-toml/dist/util.js
-function indexOfNewline(str, start = 0) {
-  let idx = str.indexOf("\n", start);
-  if (str.charCodeAt(idx - 1) === 13)
-    idx--;
-  return idx;
-}
-function skipComment(ctx) {
-  for (; ctx.p < ctx.s.length; ctx.p++) {
-    let c = ctx.s.charCodeAt(ctx.p);
-    if (c === 10)
-      break;
-    if (c === 13 && ctx.s.charCodeAt(ctx.p + 1) === 10) {
-      ctx.p++;
-      break;
-    }
-    if (c < 32 && c !== 9 || c === 127) {
-      throw new TomlError("control characters are not allowed in comments", {
-        toml: ctx.s,
-        ptr: ctx.p
-      });
-    }
-  }
-}
-function skipVoid(ctx, banNewLines, banComments) {
-  let c;
-  while (1) {
-    while ((c = ctx.s.charCodeAt(ctx.p)) === 32 || c === 9 || !banNewLines && (c === 10 || c === 13 && ctx.s.charCodeAt(ctx.p + 1) === 10))
-      ctx.p++;
-    if (banComments || c !== 35)
-      break;
-    skipComment(ctx);
-  }
-}
-function skipUntil(ctx, sep, end) {
-  let ptr = ctx.p;
-  if (!end) {
-    ptr = indexOfNewline(ctx.s, ptr);
-    ctx.p = ptr < 0 ? ctx.s.length : ptr;
-    return;
-  }
-  for (; ctx.p < ctx.s.length; ctx.p++) {
-    let c = ctx.s.charCodeAt(ctx.p);
-    if (c === 35) {
-      skipComment(ctx);
-    } else if (c === end || c === sep) {
-      return;
-    }
-  }
-  throw new TomlError("cannot find end of structure", {
-    toml: ctx.s,
-    ptr
-  });
-}
-
-// node_modules/smol-toml/dist/primitive.js
-var INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0[ob])?\d(_?\d)*))$/;
-var FLOAT_REGEX = /^[+-]?\d(_?\d)*(\.\d(_?\d)*)?([eE][+-]?\d(_?\d)*)?$/;
-var LEADING_ZERO = /^[+-]?0[0-9_]/;
-function parseString(ctx) {
-  let start = ctx.p;
-  let c = ctx.s.charCodeAt(ctx.p++);
-  let first = c;
-  let isLiteral = c === 39;
-  let isMultiline = c === ctx.s.charCodeAt(ctx.p) && c === ctx.s.charCodeAt(ctx.p + 1);
-  if (isMultiline) {
-    if ((c = ctx.s.charCodeAt(ctx.p += 2)) === 10)
-      ctx.p++;
-    else if (c === 13 && ctx.s.charCodeAt(ctx.p + 1) === 10)
-      ctx.p += 2;
-  }
-  let parsed = "";
-  let sliceStart = ctx.p;
-  let state = 0;
-  for (; ctx.p < ctx.s.length; ctx.p++) {
-    c = ctx.s.charCodeAt(ctx.p);
-    if (isMultiline && (c === 10 || c === 13 && ctx.s.charCodeAt(ctx.p + 1) === 10)) {
-      state = state && 3;
-    } else if (c < 32 && c !== 9 || c === 127) {
-      throw new TomlError("control characters are not allowed in strings", {
-        toml: ctx.s,
-        ptr: ctx.p
-      });
-    } else if ((!state || state === 3) && c === first && (!isMultiline || ctx.s.charCodeAt(ctx.p + 1) === first && ctx.s.charCodeAt(ctx.p + 2) === first)) {
-      if (isMultiline) {
-        if (ctx.s.charCodeAt(ctx.p + 3) === first)
-          ctx.p++;
-        if (ctx.s.charCodeAt(ctx.p + 3) === first)
-          ctx.p++;
-      }
-      if (!state)
-        parsed += ctx.s.slice(sliceStart, ctx.p);
-      ctx.p += isMultiline ? 3 : 1;
-      return parsed;
-    } else if (!state) {
-      if (!isLiteral && c === 92) {
-        parsed += ctx.s.slice(sliceStart, sliceStart = ctx.p);
-        state = 1;
-      }
-    } else if (state === 1) {
-      if (c === 120 || c === 117 || c === 85) {
-        let value = 0;
-        let len = c === 120 ? 2 : c === 117 ? 4 : 8;
-        for (let j = 0; j < len; j++, ctx.p++) {
-          let hex = ctx.s.charCodeAt(ctx.p + 1);
-          let digit = (
-            /* 0-9 */
-            hex >= 48 && hex <= 57 ? hex - 48 : (
-              /* A-F */
-              hex >= 65 && hex <= 70 ? hex - 65 + 10 : (
-                /* a-f */
-                hex >= 97 && hex <= 102 ? hex - 97 + 10 : -1
-              )
-            )
-          );
-          if (digit < 0)
-            throw new TomlError("invalid non-hex character in unicode escape", { toml: ctx.s, ptr: ctx.p + 1 });
-          value = value << 4 | digit;
-        }
-        if (value < 0 || value > 1114111 || value >= 55296 && value <= 57343) {
-          throw new TomlError("invalid unicode escape", { toml: ctx.s, ptr: ctx.p });
-        }
-        parsed += String.fromCodePoint(value);
-        sliceStart = ctx.p + 1;
-        state = 0;
-      } else if (c === 32 || c === 9) {
-        state = 2;
-      } else {
-        if (c === 98)
-          parsed += "\b";
-        else if (c === 116)
-          parsed += "	";
-        else if (c === 110)
-          parsed += "\n";
-        else if (c === 102)
-          parsed += "\f";
-        else if (c === 114)
-          parsed += "\r";
-        else if (c === 101)
-          parsed += "\x1B";
-        else if (c === 34)
-          parsed += '"';
-        else if (c === 92)
-          parsed += "\\";
-        else
-          throw new TomlError("unrecognized escape sequence", { toml: ctx.s, ptr: ctx.p });
-        sliceStart = ctx.p + 1;
-        state = 0;
-      }
-    } else if (c !== 32 && c !== 9) {
-      if (state === 2) {
-        throw new TomlError("invalid escape: only line-ending whitespace may be escaped", {
-          toml: ctx.s,
-          ptr: sliceStart
-        });
-      }
-      state = !isLiteral && c === 92 ? 1 : 0;
-      sliceStart = ctx.p;
-    }
-  }
-  throw new TomlError("unfinished string", { toml: ctx.s, ptr: start });
-}
-function sliceAndTrimEndOf(ctx, start, end) {
-  let value = ctx.s.slice(start, end);
-  let commentIdx = value.indexOf("#");
-  if (commentIdx > 0) {
-    skipComment({ s: value, p: commentIdx, d: 0 });
-    value = value.slice(0, commentIdx);
-  }
-  return value.trimEnd();
-}
-function parseValue(ctx, integersAsBigInt, end) {
-  let ptr = ctx.p;
-  let err = { toml: ctx.s, ptr };
-  skipUntil(ctx, 44, end);
-  let value = sliceAndTrimEndOf(ctx, ptr, ctx.p);
-  if (!value)
-    throw new TomlError("incomplete declaration: value expected", err);
-  if (value === "-inf")
-    return -Infinity;
-  if (value === "inf" || value === "+inf")
-    return Infinity;
-  if (value === "nan" || value === "+nan" || value === "-nan")
-    return NaN;
-  if (value === "-0")
-    return integersAsBigInt ? 0n : 0;
-  let isInt = INT_REGEX.test(value);
-  if (isInt || FLOAT_REGEX.test(value)) {
-    if (LEADING_ZERO.test(value)) {
-      throw new TomlError("leading zeroes are not allowed", err);
-    }
-    value = value.replace(/_/g, "");
-    let numeric = +value;
-    if (isNaN(numeric)) {
-      throw new TomlError("invalid number", err);
-    }
-    if (isInt) {
-      if ((isInt = !Number.isSafeInteger(numeric)) && !integersAsBigInt) {
-        throw new TomlError("integer value cannot be represented losslessly", err);
-      }
-      if (isInt || integersAsBigInt === true)
-        numeric = BigInt(value);
-    }
-    return numeric;
-  }
-  const date = new TomlDate(value);
-  if (!date.isValid())
-    throw new TomlError("invalid value", err);
-  return date;
-}
-
-// node_modules/smol-toml/dist/extract.js
-function extractValue(ctx, end, integersAsBigInt) {
-  let ptr = ctx.p;
-  let c = ctx.s.charCodeAt(ptr);
-  if (c === 91 || c === 123) {
-    if (!ctx.d--) {
-      throw new TomlError("document contains excessively nested structures. aborting.", {
-        toml: ctx.s,
-        ptr
-      });
-    }
-    let value = c === 91 ? parseArray(ctx, integersAsBigInt) : parseInlineTable(ctx, integersAsBigInt);
-    ctx.d++;
-    return value;
-  }
-  if (c === 34 || c === 39) {
-    return parseString(ctx);
-  }
-  if (c === 116) {
-    if (ctx.s.charCodeAt(++ctx.p) !== 114 || ctx.s.charCodeAt(++ctx.p) !== 117 || ctx.s.charCodeAt(++ctx.p) !== 101)
-      throw new TomlError("invalid value", { toml: ctx.s, ptr });
-    ctx.p++;
-    return true;
-  }
-  if (c === 102) {
-    if (ctx.s.charCodeAt(++ctx.p) !== 97 || ctx.s.charCodeAt(++ctx.p) !== 108 || ctx.s.charCodeAt(++ctx.p) !== 115 || ctx.s.charCodeAt(++ctx.p) !== 101)
-      throw new TomlError("invalid value", { toml: ctx.s, ptr });
-    ctx.p++;
-    return false;
-  }
-  return parseValue(ctx, integersAsBigInt, end);
-}
-
-// node_modules/smol-toml/dist/struct.js
-var KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/;
-function parseKey(ctx, end = "=") {
-  let start = ctx.p;
-  let dot = start - 1;
-  let parsed = [];
-  let endPtr = ctx.s.indexOf(end, start);
-  if (endPtr < 0) {
-    throw new TomlError("incomplete key-value: cannot find end of key", {
-      toml: ctx.s,
-      ptr: start
-    });
-  }
-  do {
-    let c = ctx.s.charCodeAt(ctx.p = ++dot);
-    if (c !== 32 && c !== 9) {
-      if (c === 34 || c === 39) {
-        if (c === ctx.s.charCodeAt(ctx.p + 1) && c === ctx.s.charCodeAt(ctx.p + 2)) {
-          throw new TomlError("multiline strings are not allowed in keys", {
-            toml: ctx.s,
-            ptr: ctx.p
-          });
-        }
-        let part = parseString(ctx);
-        dot = ctx.s.indexOf(".", ctx.p);
-        let strEnd = ctx.s.slice(ctx.p, dot < 0 || dot > endPtr ? endPtr : dot);
-        let newLine = indexOfNewline(strEnd);
-        if (newLine > -1) {
-          throw new TomlError("newlines are not allowed in keys", {
-            toml: ctx.s,
-            ptr: newLine
-          });
-        }
-        if (strEnd.trimStart()) {
-          throw new TomlError("found extra tokens after the string part", {
-            toml: ctx.s,
-            ptr: ctx.p
-          });
-        }
-        if (endPtr < ctx.p) {
-          endPtr = ctx.s.indexOf(end, ctx.p);
-          if (endPtr < 0) {
-            throw new TomlError("incomplete key-value: cannot find end of key", {
-              toml: ctx.s,
-              ptr: start
-            });
-          }
-        }
-        parsed.push(part);
-      } else {
-        dot = ctx.s.indexOf(".", ctx.p);
-        let part = ctx.s.slice(ctx.p, dot < 0 || dot > endPtr ? endPtr : dot);
-        if (!KEY_PART_RE.test(part)) {
-          throw new TomlError("only letter, numbers, dashes and underscores are allowed in keys", {
-            toml: ctx.s,
-            ptr: ctx.p
-          });
-        }
-        parsed.push(part.trimEnd());
-      }
-    }
-  } while (dot + 1 && dot < endPtr);
-  ctx.p = endPtr + 1;
-  skipVoid(ctx, true, true);
-  return parsed;
-}
-function parseInlineTable(ctx, integersAsBigInt) {
-  let res = {};
-  let seen = /* @__PURE__ */ new Set();
-  let c;
-  ctx.p++;
-  while (ctx.p < ctx.s.length) {
-    skipVoid(ctx);
-    if ((c = ctx.s.charCodeAt(ctx.p)) === 125) {
-      ctx.p++;
-      return res;
-    }
-    let k;
-    let t = res;
-    let hasOwn = false;
-    let p = ctx.p;
-    let key = parseKey(ctx);
-    for (let i = 0; i < key.length; i++) {
-      if (i)
-        t = hasOwn ? t[k] : t[k] = {};
-      k = key[i];
-      if ((hasOwn = Object.hasOwn(t, k)) && (typeof t[k] !== "object" || seen.has(t[k]))) {
-        throw new TomlError("trying to redefine an already defined value", {
-          toml: ctx.s,
-          ptr: p
-        });
-      }
-      if (!hasOwn && k === "__proto__") {
-        Object.defineProperty(t, k, { enumerable: true, configurable: true, writable: true });
-      }
-    }
-    if (hasOwn) {
-      throw new TomlError("trying to redefine an already defined value", {
-        toml: ctx.s,
-        ptr: ctx.p
-      });
-    }
-    let value = extractValue(ctx, 125, integersAsBigInt);
-    seen.add(t[k] = value);
-    skipVoid(ctx);
-    if ((c = ctx.s.charCodeAt(ctx.p++)) === 125) {
-      return res;
-    }
-    if (c !== 44) {
-      throw new TomlError("expected comma or end of structure", { toml: ctx.s, ptr: ctx.p - 1 });
-    }
-  }
-  throw new TomlError("unfinished table encountered", {
-    toml: ctx.s,
-    ptr: ctx.p
-  });
-}
-function parseArray(ctx, integersAsBigInt) {
-  let res = [];
-  let c;
-  ctx.p++;
-  while (ctx.p < ctx.s.length) {
-    skipVoid(ctx);
-    if ((c = ctx.s.charCodeAt(ctx.p)) === 93) {
-      ctx.p++;
-      return res;
-    }
-    res.push(extractValue(ctx, 93, integersAsBigInt));
-    skipVoid(ctx);
-    if ((c = ctx.s.charCodeAt(ctx.p++)) === 93) {
-      return res;
-    }
-    if (c !== 44) {
-      throw new TomlError("expected comma or end of structure", { toml: ctx.s, ptr: ctx.p - 1 });
-    }
-  }
-  throw new TomlError("unfinished array encountered", {
-    toml: ctx.s,
-    ptr: ctx.p
-  });
-}
-
-// node_modules/smol-toml/dist/parse.js
-function peekTable(key, table, meta, type) {
-  let t = table;
-  let m = meta;
-  let k;
-  let hasOwn = false;
-  let state;
-  for (let i = 0; i < key.length; i++) {
-    if (i) {
-      t = hasOwn ? t[k] : t[k] = {};
-      m = (state = m[k]).c;
-      if (type === 0 && (state.t === 1 || state.t === 2)) {
-        return null;
-      }
-      if (state.t === 2) {
-        let l = t.length - 1;
-        t = t[l];
-        m = m[l].c;
-      }
-    }
-    k = key[i];
-    if ((hasOwn = Object.hasOwn(t, k)) && m[k]?.t === 0 && m[k]?.d) {
-      return null;
-    }
-    if (!hasOwn) {
-      if (k === "__proto__") {
-        Object.defineProperty(t, k, { enumerable: true, configurable: true, writable: true });
-        Object.defineProperty(m, k, { enumerable: true, configurable: true, writable: true });
-      }
-      m[k] = {
-        t: i < key.length - 1 && type === 2 ? 3 : type,
-        d: false,
-        i: 0,
-        c: {}
-      };
-    }
-  }
-  state = m[k];
-  if (state.t !== type && !(type === 1 && state.t === 3)) {
-    return null;
-  }
-  if (type === 2) {
-    if (!state.d) {
-      state.d = true;
-      t[k] = [];
-    }
-    t[k].push(t = {});
-    state.c[state.i++] = state = { t: 1, d: false, i: 0, c: {} };
-  }
-  if (state.d) {
-    return null;
-  }
-  state.d = true;
-  if (type === 1) {
-    t = hasOwn ? t[k] : t[k] = {};
-  } else if (type === 0 && hasOwn) {
-    return null;
-  }
-  return [k, t, state.c];
-}
-function parse(toml, { maxDepth = 1e3, integersAsBigInt } = {}) {
-  let ctx = { s: toml, p: 0, d: maxDepth };
-  let res = {};
-  let meta = {};
-  let tmp;
-  let tbl = res;
-  let m = meta;
-  skipVoid(ctx);
-  while (ctx.p < toml.length) {
-    if (toml.charCodeAt(ctx.p) === 91) {
-      let isTableArray = toml.charCodeAt(++ctx.p) === 91;
-      tmp = ctx.p += +isTableArray;
-      let k = parseKey(ctx, "]");
-      if (isTableArray) {
-        if (toml.charCodeAt(ctx.p - 1) !== 93) {
-          throw new TomlError("expected end of table declaration", {
-            toml,
-            ptr: ctx.p - 1
-          });
-        }
-        ctx.p++;
-      }
-      let p = peekTable(
-        k,
-        res,
-        meta,
-        isTableArray ? 2 : 1
-        /* Type.EXPLICIT */
-      );
-      if (!p) {
-        throw new TomlError("trying to redefine an already defined table or value", {
-          toml,
-          ptr: tmp
-        });
-      }
-      m = p[2];
-      tbl = p[1];
-    } else {
-      tmp = ctx.p;
-      let k = parseKey(ctx);
-      let p = peekTable(
-        k,
-        tbl,
-        m,
-        0
-        /* Type.DOTTED */
-      );
-      if (!p) {
-        throw new TomlError("trying to redefine an already defined table or value", {
-          toml,
-          ptr: tmp
-        });
-      }
-      p[1][p[0]] = extractValue(ctx, void 0, integersAsBigInt);
-    }
-    skipVoid(ctx, true);
-    if (ctx.p < toml.length && (tmp = toml.charCodeAt(ctx.p)) !== 10 && tmp !== 13) {
-      throw new TomlError("each key-value declaration must be followed by an end-of-line", {
-        toml,
-        ptr: ctx.p
-      });
-    }
-    skipVoid(ctx);
-  }
-  return res;
-}
-
-// src/scanner/parsers.ts
-var import_yaml = __toESM(require_dist(), 1);
-function parseTomlSafe(content) {
-  try {
-    const value = parse(content);
-    return value && typeof value === "object" ? value : null;
-  } catch {
-    return null;
-  }
-}
-function parseYamlSafe(content) {
-  try {
-    const value = (0, import_yaml.parse)(content);
-    return value && typeof value === "object" && !Array.isArray(value) ? value : null;
-  } catch {
-    return null;
-  }
-}
-function stripControlCharacters(text) {
-  let out = "";
-  for (const ch of text) {
-    const code = ch.charCodeAt(0);
-    const isControl = code < 32 && code !== 9 && code !== 10 && code !== 13;
-    if (!isControl) out += ch;
-  }
-  return out;
-}
-function parseJsonLenient(content) {
-  const attempt = (text) => {
-    try {
-      const value = JSON.parse(text);
-      return value && typeof value === "object" && !Array.isArray(value) ? value : null;
-    } catch {
-      return null;
-    }
-  };
-  const strict = attempt(content);
-  if (strict) return strict;
-  const withoutComments = content.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:\\"'])\/\/[^\n]*/g, "$1");
-  const withoutTrailingCommas = withoutComments.replace(/,\s*([}\]])/g, "$1");
-  const withoutControl = stripControlCharacters(withoutTrailingCommas);
-  return attempt(withoutControl);
-}
-function parseFrontmatter(content) {
-  if (!content.startsWith("---")) return null;
-  const end = content.indexOf("\n---", 3);
-  if (end === -1) return null;
-  return parseYamlSafe(content.slice(3, end));
-}
-
 // src/scanner/discovery.ts
 var IGNORED_DIRS = /* @__PURE__ */ new Set([
   ".dmux",
@@ -14355,8 +13650,6 @@ var CLAUDE_ROOT_MARKERS = /* @__PURE__ */ new Set([
   "opencode.json"
 ]);
 var HARNESS_ROOT_DIRS = /* @__PURE__ */ new Set([".codex", ".claude-plugin", ".cursor", ".gemini", ".opencode"]);
-var MARKDOWN_EXTENSIONS = /* @__PURE__ */ new Set([".md", ".markdown"]);
-var FRONTMATTER_PROBE_BYTES = 8192;
 var CLAUDE_RUNTIME_COMPANION_NAMES = [
   "settings.json",
   "settings.local.json",
@@ -14404,17 +13697,12 @@ function discoverConfigFiles(rootPath) {
   const seenFiles = /* @__PURE__ */ new Set();
   const claudeRoots = /* @__PURE__ */ new Set([rootPath]);
   const exampleClaudeFiles = /* @__PURE__ */ new Set();
-  const agentDefinitionFiles = /* @__PURE__ */ new Set();
-  walkForClaudeRoots(rootPath, rootPath, claudeRoots, exampleClaudeFiles, agentDefinitionFiles);
+  walkForClaudeRoots(rootPath, rootPath, claudeRoots, exampleClaudeFiles);
   for (const exampleClaudeFile of [...exampleClaudeFiles].sort()) {
     addDiscoveredFile(rootPath, exampleClaudeFile, "claude-md", files, seenFiles);
   }
   for (const claudeRoot of [...claudeRoots].sort()) {
     scanClaudeRoot(rootPath, claudeRoot, files, seenFiles, danglingSymlinks);
-  }
-  for (const agentFile of [...agentDefinitionFiles].sort()) {
-    const type = basename(agentFile).toLowerCase() === "skill.md" ? "skill-md" : "agent-md";
-    addDiscoveredFile(rootPath, agentFile, type, files, seenFiles);
   }
   return { path: rootPath, files, danglingSymlinks };
 }
@@ -14439,7 +13727,7 @@ function readSymlinkTarget(path) {
     return "";
   }
 }
-function walkForClaudeRoots(scanRoot, dirPath, claudeRoots, exampleClaudeFiles, agentDefinitionFiles) {
+function walkForClaudeRoots(scanRoot, dirPath, claudeRoots, exampleClaudeFiles) {
   if (!statOrNull(dirPath)?.isDirectory()) return;
   const entries = readdirSync(dirPath, { withFileTypes: true });
   for (const entry of entries) {
@@ -14452,13 +13740,7 @@ function walkForClaudeRoots(scanRoot, dirPath, claudeRoots, exampleClaudeFiles, 
         claudeRoots.add(dirPath);
         continue;
       }
-      walkForClaudeRoots(
-        scanRoot,
-        join(dirPath, entry.name),
-        claudeRoots,
-        exampleClaudeFiles,
-        agentDefinitionFiles
-      );
+      walkForClaudeRoots(scanRoot, join(dirPath, entry.name), claudeRoots, exampleClaudeFiles);
       continue;
     }
     if (!entry.isFile()) continue;
@@ -14468,33 +13750,7 @@ function walkForClaudeRoots(scanRoot, dirPath, claudeRoots, exampleClaudeFiles, 
         continue;
       }
       claudeRoots.add(dirPath);
-      continue;
     }
-    const filePath = join(dirPath, entry.name);
-    if (isAgentDefinitionFile(scanRoot, filePath)) {
-      agentDefinitionFiles.add(filePath);
-    }
-  }
-}
-function isAgentDefinitionFile(scanRoot, filePath) {
-  if (!MARKDOWN_EXTENSIONS.has(extname(filePath).toLowerCase())) return false;
-  if (isExampleLikePath(toPosixPath(relative(scanRoot, filePath)))) return false;
-  const head = readFileHead(filePath);
-  if (head === null) return false;
-  const frontmatter = parseFrontmatter(head);
-  return typeof frontmatter?.name === "string" && frontmatter.name.trim().length > 0 && typeof frontmatter.description === "string" && frontmatter.description.trim().length > 0;
-}
-function readFileHead(filePath) {
-  let fd = null;
-  try {
-    fd = openSync(filePath, "r");
-    const buffer = Buffer.alloc(FRONTMATTER_PROBE_BYTES);
-    const bytesRead = readSync(fd, buffer, 0, FRONTMATTER_PROBE_BYTES, 0);
-    return buffer.toString("utf-8", 0, bytesRead).replace(/\r\n/g, "\n");
-  } catch {
-    return null;
-  } finally {
-    if (fd !== null) closeSync(fd);
   }
 }
 function isExampleOnlyClaudeRoot(scanRoot, dirPath, markerName) {
@@ -20699,6 +19955,701 @@ var rawToolPoisoningRules = [
   }
 ];
 var toolPoisoningRules = rawToolPoisoningRules;
+
+// node_modules/smol-toml/dist/date.js
+var DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2})?[T ]?(?:(\d{2}):\d{2}(?::\d{2}(?:\.\d+)?)?)?(Z|[-+]\d{2}:\d{2})?$/i;
+var TomlDate = class _TomlDate extends Date {
+  #hasDate = false;
+  #hasTime = false;
+  #offset = null;
+  constructor(date) {
+    let hasDate = true;
+    let hasTime = true;
+    let offset = "Z";
+    if (typeof date === "string") {
+      let match = date.match(DATE_TIME_RE);
+      if (match) {
+        if (!match[1]) {
+          hasDate = false;
+          date = `0000-01-01T${date}`;
+        }
+        hasTime = !!match[2];
+        hasTime && date[10] === " " && (date = date.replace(" ", "T"));
+        if (match[2] && +match[2] > 23) {
+          date = "";
+        } else {
+          offset = match[3] || null;
+          date = date.toUpperCase();
+          if (!offset && hasTime)
+            date += "Z";
+        }
+      } else {
+        date = "";
+      }
+    }
+    super(date);
+    if (!isNaN(this.getTime())) {
+      this.#hasDate = hasDate;
+      this.#hasTime = hasTime;
+      this.#offset = offset;
+    }
+  }
+  isDateTime() {
+    return this.#hasDate && this.#hasTime;
+  }
+  isLocal() {
+    return !this.#hasDate || !this.#hasTime || !this.#offset;
+  }
+  isDate() {
+    return this.#hasDate && !this.#hasTime;
+  }
+  isTime() {
+    return this.#hasTime && !this.#hasDate;
+  }
+  isValid() {
+    return this.#hasDate || this.#hasTime;
+  }
+  toISOString() {
+    let iso = super.toISOString();
+    if (this.isDate())
+      return iso.slice(0, 10);
+    if (this.isTime())
+      return iso.slice(11, 23);
+    if (this.#offset === null)
+      return iso.slice(0, -1);
+    if (this.#offset === "Z")
+      return iso;
+    let offset = +this.#offset.slice(1, 3) * 60 + +this.#offset.slice(4, 6);
+    offset = this.#offset[0] === "-" ? offset : -offset;
+    let offsetDate = new Date(this.getTime() - offset * 6e4);
+    return offsetDate.toISOString().slice(0, -1) + this.#offset;
+  }
+  static wrapAsOffsetDateTime(jsDate, offset = "Z") {
+    let date = new _TomlDate(jsDate);
+    date.#offset = offset;
+    return date;
+  }
+  static wrapAsLocalDateTime(jsDate) {
+    let date = new _TomlDate(jsDate);
+    date.#offset = null;
+    return date;
+  }
+  static wrapAsLocalDate(jsDate) {
+    let date = new _TomlDate(jsDate);
+    date.#hasTime = false;
+    date.#offset = null;
+    return date;
+  }
+  static wrapAsLocalTime(jsDate) {
+    let date = new _TomlDate(jsDate);
+    date.#hasDate = false;
+    date.#offset = null;
+    return date;
+  }
+};
+
+// node_modules/smol-toml/dist/error.js
+function getLineColFromPtr(string, ptr) {
+  let lines = string.slice(0, ptr).split(/\r\n|\n|\r/g);
+  return [lines.length, lines.pop().length + 1];
+}
+function makeCodeBlock(string, line, column) {
+  let lines = string.split(/\r\n|\n|\r/g);
+  let codeblock = "";
+  let numberLen = (Math.log10(line + 1) | 0) + 1;
+  for (let i = line - 1; i <= line + 1; i++) {
+    let l = lines[i - 1];
+    if (!l)
+      continue;
+    codeblock += i.toString().padEnd(numberLen, " ");
+    codeblock += ":  ";
+    codeblock += l;
+    codeblock += "\n";
+    if (i === line) {
+      codeblock += " ".repeat(numberLen + column + 2);
+      codeblock += "^\n";
+    }
+  }
+  return codeblock;
+}
+var TomlError = class extends Error {
+  line;
+  column;
+  codeblock;
+  constructor(message, options) {
+    const [line, column] = getLineColFromPtr(options.toml, options.ptr);
+    const codeblock = makeCodeBlock(options.toml, line, column);
+    super(`Invalid TOML document: ${message}
+
+${codeblock}`, options);
+    this.line = line;
+    this.column = column;
+    this.codeblock = codeblock;
+  }
+};
+
+// node_modules/smol-toml/dist/util.js
+function indexOfNewline(str, start = 0) {
+  let idx = str.indexOf("\n", start);
+  if (str.charCodeAt(idx - 1) === 13)
+    idx--;
+  return idx;
+}
+function skipComment(ctx) {
+  for (; ctx.p < ctx.s.length; ctx.p++) {
+    let c = ctx.s.charCodeAt(ctx.p);
+    if (c === 10)
+      break;
+    if (c === 13 && ctx.s.charCodeAt(ctx.p + 1) === 10) {
+      ctx.p++;
+      break;
+    }
+    if (c < 32 && c !== 9 || c === 127) {
+      throw new TomlError("control characters are not allowed in comments", {
+        toml: ctx.s,
+        ptr: ctx.p
+      });
+    }
+  }
+}
+function skipVoid(ctx, banNewLines, banComments) {
+  let c;
+  while (1) {
+    while ((c = ctx.s.charCodeAt(ctx.p)) === 32 || c === 9 || !banNewLines && (c === 10 || c === 13 && ctx.s.charCodeAt(ctx.p + 1) === 10))
+      ctx.p++;
+    if (banComments || c !== 35)
+      break;
+    skipComment(ctx);
+  }
+}
+function skipUntil(ctx, sep, end) {
+  let ptr = ctx.p;
+  if (!end) {
+    ptr = indexOfNewline(ctx.s, ptr);
+    ctx.p = ptr < 0 ? ctx.s.length : ptr;
+    return;
+  }
+  for (; ctx.p < ctx.s.length; ctx.p++) {
+    let c = ctx.s.charCodeAt(ctx.p);
+    if (c === 35) {
+      skipComment(ctx);
+    } else if (c === end || c === sep) {
+      return;
+    }
+  }
+  throw new TomlError("cannot find end of structure", {
+    toml: ctx.s,
+    ptr
+  });
+}
+
+// node_modules/smol-toml/dist/primitive.js
+var INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0[ob])?\d(_?\d)*))$/;
+var FLOAT_REGEX = /^[+-]?\d(_?\d)*(\.\d(_?\d)*)?([eE][+-]?\d(_?\d)*)?$/;
+var LEADING_ZERO = /^[+-]?0[0-9_]/;
+function parseString(ctx) {
+  let start = ctx.p;
+  let c = ctx.s.charCodeAt(ctx.p++);
+  let first = c;
+  let isLiteral = c === 39;
+  let isMultiline = c === ctx.s.charCodeAt(ctx.p) && c === ctx.s.charCodeAt(ctx.p + 1);
+  if (isMultiline) {
+    if ((c = ctx.s.charCodeAt(ctx.p += 2)) === 10)
+      ctx.p++;
+    else if (c === 13 && ctx.s.charCodeAt(ctx.p + 1) === 10)
+      ctx.p += 2;
+  }
+  let parsed = "";
+  let sliceStart = ctx.p;
+  let state = 0;
+  for (; ctx.p < ctx.s.length; ctx.p++) {
+    c = ctx.s.charCodeAt(ctx.p);
+    if (isMultiline && (c === 10 || c === 13 && ctx.s.charCodeAt(ctx.p + 1) === 10)) {
+      state = state && 3;
+    } else if (c < 32 && c !== 9 || c === 127) {
+      throw new TomlError("control characters are not allowed in strings", {
+        toml: ctx.s,
+        ptr: ctx.p
+      });
+    } else if ((!state || state === 3) && c === first && (!isMultiline || ctx.s.charCodeAt(ctx.p + 1) === first && ctx.s.charCodeAt(ctx.p + 2) === first)) {
+      if (isMultiline) {
+        if (ctx.s.charCodeAt(ctx.p + 3) === first)
+          ctx.p++;
+        if (ctx.s.charCodeAt(ctx.p + 3) === first)
+          ctx.p++;
+      }
+      if (!state)
+        parsed += ctx.s.slice(sliceStart, ctx.p);
+      ctx.p += isMultiline ? 3 : 1;
+      return parsed;
+    } else if (!state) {
+      if (!isLiteral && c === 92) {
+        parsed += ctx.s.slice(sliceStart, sliceStart = ctx.p);
+        state = 1;
+      }
+    } else if (state === 1) {
+      if (c === 120 || c === 117 || c === 85) {
+        let value = 0;
+        let len = c === 120 ? 2 : c === 117 ? 4 : 8;
+        for (let j = 0; j < len; j++, ctx.p++) {
+          let hex = ctx.s.charCodeAt(ctx.p + 1);
+          let digit = (
+            /* 0-9 */
+            hex >= 48 && hex <= 57 ? hex - 48 : (
+              /* A-F */
+              hex >= 65 && hex <= 70 ? hex - 65 + 10 : (
+                /* a-f */
+                hex >= 97 && hex <= 102 ? hex - 97 + 10 : -1
+              )
+            )
+          );
+          if (digit < 0)
+            throw new TomlError("invalid non-hex character in unicode escape", { toml: ctx.s, ptr: ctx.p + 1 });
+          value = value << 4 | digit;
+        }
+        if (value < 0 || value > 1114111 || value >= 55296 && value <= 57343) {
+          throw new TomlError("invalid unicode escape", { toml: ctx.s, ptr: ctx.p });
+        }
+        parsed += String.fromCodePoint(value);
+        sliceStart = ctx.p + 1;
+        state = 0;
+      } else if (c === 32 || c === 9) {
+        state = 2;
+      } else {
+        if (c === 98)
+          parsed += "\b";
+        else if (c === 116)
+          parsed += "	";
+        else if (c === 110)
+          parsed += "\n";
+        else if (c === 102)
+          parsed += "\f";
+        else if (c === 114)
+          parsed += "\r";
+        else if (c === 101)
+          parsed += "\x1B";
+        else if (c === 34)
+          parsed += '"';
+        else if (c === 92)
+          parsed += "\\";
+        else
+          throw new TomlError("unrecognized escape sequence", { toml: ctx.s, ptr: ctx.p });
+        sliceStart = ctx.p + 1;
+        state = 0;
+      }
+    } else if (c !== 32 && c !== 9) {
+      if (state === 2) {
+        throw new TomlError("invalid escape: only line-ending whitespace may be escaped", {
+          toml: ctx.s,
+          ptr: sliceStart
+        });
+      }
+      state = !isLiteral && c === 92 ? 1 : 0;
+      sliceStart = ctx.p;
+    }
+  }
+  throw new TomlError("unfinished string", { toml: ctx.s, ptr: start });
+}
+function sliceAndTrimEndOf(ctx, start, end) {
+  let value = ctx.s.slice(start, end);
+  let commentIdx = value.indexOf("#");
+  if (commentIdx > 0) {
+    skipComment({ s: value, p: commentIdx, d: 0 });
+    value = value.slice(0, commentIdx);
+  }
+  return value.trimEnd();
+}
+function parseValue(ctx, integersAsBigInt, end) {
+  let ptr = ctx.p;
+  let err = { toml: ctx.s, ptr };
+  skipUntil(ctx, 44, end);
+  let value = sliceAndTrimEndOf(ctx, ptr, ctx.p);
+  if (!value)
+    throw new TomlError("incomplete declaration: value expected", err);
+  if (value === "-inf")
+    return -Infinity;
+  if (value === "inf" || value === "+inf")
+    return Infinity;
+  if (value === "nan" || value === "+nan" || value === "-nan")
+    return NaN;
+  if (value === "-0")
+    return integersAsBigInt ? 0n : 0;
+  let isInt = INT_REGEX.test(value);
+  if (isInt || FLOAT_REGEX.test(value)) {
+    if (LEADING_ZERO.test(value)) {
+      throw new TomlError("leading zeroes are not allowed", err);
+    }
+    value = value.replace(/_/g, "");
+    let numeric = +value;
+    if (isNaN(numeric)) {
+      throw new TomlError("invalid number", err);
+    }
+    if (isInt) {
+      if ((isInt = !Number.isSafeInteger(numeric)) && !integersAsBigInt) {
+        throw new TomlError("integer value cannot be represented losslessly", err);
+      }
+      if (isInt || integersAsBigInt === true)
+        numeric = BigInt(value);
+    }
+    return numeric;
+  }
+  const date = new TomlDate(value);
+  if (!date.isValid())
+    throw new TomlError("invalid value", err);
+  return date;
+}
+
+// node_modules/smol-toml/dist/extract.js
+function extractValue(ctx, end, integersAsBigInt) {
+  let ptr = ctx.p;
+  let c = ctx.s.charCodeAt(ptr);
+  if (c === 91 || c === 123) {
+    if (!ctx.d--) {
+      throw new TomlError("document contains excessively nested structures. aborting.", {
+        toml: ctx.s,
+        ptr
+      });
+    }
+    let value = c === 91 ? parseArray(ctx, integersAsBigInt) : parseInlineTable(ctx, integersAsBigInt);
+    ctx.d++;
+    return value;
+  }
+  if (c === 34 || c === 39) {
+    return parseString(ctx);
+  }
+  if (c === 116) {
+    if (ctx.s.charCodeAt(++ctx.p) !== 114 || ctx.s.charCodeAt(++ctx.p) !== 117 || ctx.s.charCodeAt(++ctx.p) !== 101)
+      throw new TomlError("invalid value", { toml: ctx.s, ptr });
+    ctx.p++;
+    return true;
+  }
+  if (c === 102) {
+    if (ctx.s.charCodeAt(++ctx.p) !== 97 || ctx.s.charCodeAt(++ctx.p) !== 108 || ctx.s.charCodeAt(++ctx.p) !== 115 || ctx.s.charCodeAt(++ctx.p) !== 101)
+      throw new TomlError("invalid value", { toml: ctx.s, ptr });
+    ctx.p++;
+    return false;
+  }
+  return parseValue(ctx, integersAsBigInt, end);
+}
+
+// node_modules/smol-toml/dist/struct.js
+var KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/;
+function parseKey(ctx, end = "=") {
+  let start = ctx.p;
+  let dot = start - 1;
+  let parsed = [];
+  let endPtr = ctx.s.indexOf(end, start);
+  if (endPtr < 0) {
+    throw new TomlError("incomplete key-value: cannot find end of key", {
+      toml: ctx.s,
+      ptr: start
+    });
+  }
+  do {
+    let c = ctx.s.charCodeAt(ctx.p = ++dot);
+    if (c !== 32 && c !== 9) {
+      if (c === 34 || c === 39) {
+        if (c === ctx.s.charCodeAt(ctx.p + 1) && c === ctx.s.charCodeAt(ctx.p + 2)) {
+          throw new TomlError("multiline strings are not allowed in keys", {
+            toml: ctx.s,
+            ptr: ctx.p
+          });
+        }
+        let part = parseString(ctx);
+        dot = ctx.s.indexOf(".", ctx.p);
+        let strEnd = ctx.s.slice(ctx.p, dot < 0 || dot > endPtr ? endPtr : dot);
+        let newLine = indexOfNewline(strEnd);
+        if (newLine > -1) {
+          throw new TomlError("newlines are not allowed in keys", {
+            toml: ctx.s,
+            ptr: newLine
+          });
+        }
+        if (strEnd.trimStart()) {
+          throw new TomlError("found extra tokens after the string part", {
+            toml: ctx.s,
+            ptr: ctx.p
+          });
+        }
+        if (endPtr < ctx.p) {
+          endPtr = ctx.s.indexOf(end, ctx.p);
+          if (endPtr < 0) {
+            throw new TomlError("incomplete key-value: cannot find end of key", {
+              toml: ctx.s,
+              ptr: start
+            });
+          }
+        }
+        parsed.push(part);
+      } else {
+        dot = ctx.s.indexOf(".", ctx.p);
+        let part = ctx.s.slice(ctx.p, dot < 0 || dot > endPtr ? endPtr : dot);
+        if (!KEY_PART_RE.test(part)) {
+          throw new TomlError("only letter, numbers, dashes and underscores are allowed in keys", {
+            toml: ctx.s,
+            ptr: ctx.p
+          });
+        }
+        parsed.push(part.trimEnd());
+      }
+    }
+  } while (dot + 1 && dot < endPtr);
+  ctx.p = endPtr + 1;
+  skipVoid(ctx, true, true);
+  return parsed;
+}
+function parseInlineTable(ctx, integersAsBigInt) {
+  let res = {};
+  let seen = /* @__PURE__ */ new Set();
+  let c;
+  ctx.p++;
+  while (ctx.p < ctx.s.length) {
+    skipVoid(ctx);
+    if ((c = ctx.s.charCodeAt(ctx.p)) === 125) {
+      ctx.p++;
+      return res;
+    }
+    let k;
+    let t = res;
+    let hasOwn = false;
+    let p = ctx.p;
+    let key = parseKey(ctx);
+    for (let i = 0; i < key.length; i++) {
+      if (i)
+        t = hasOwn ? t[k] : t[k] = {};
+      k = key[i];
+      if ((hasOwn = Object.hasOwn(t, k)) && (typeof t[k] !== "object" || seen.has(t[k]))) {
+        throw new TomlError("trying to redefine an already defined value", {
+          toml: ctx.s,
+          ptr: p
+        });
+      }
+      if (!hasOwn && k === "__proto__") {
+        Object.defineProperty(t, k, { enumerable: true, configurable: true, writable: true });
+      }
+    }
+    if (hasOwn) {
+      throw new TomlError("trying to redefine an already defined value", {
+        toml: ctx.s,
+        ptr: ctx.p
+      });
+    }
+    let value = extractValue(ctx, 125, integersAsBigInt);
+    seen.add(t[k] = value);
+    skipVoid(ctx);
+    if ((c = ctx.s.charCodeAt(ctx.p++)) === 125) {
+      return res;
+    }
+    if (c !== 44) {
+      throw new TomlError("expected comma or end of structure", { toml: ctx.s, ptr: ctx.p - 1 });
+    }
+  }
+  throw new TomlError("unfinished table encountered", {
+    toml: ctx.s,
+    ptr: ctx.p
+  });
+}
+function parseArray(ctx, integersAsBigInt) {
+  let res = [];
+  let c;
+  ctx.p++;
+  while (ctx.p < ctx.s.length) {
+    skipVoid(ctx);
+    if ((c = ctx.s.charCodeAt(ctx.p)) === 93) {
+      ctx.p++;
+      return res;
+    }
+    res.push(extractValue(ctx, 93, integersAsBigInt));
+    skipVoid(ctx);
+    if ((c = ctx.s.charCodeAt(ctx.p++)) === 93) {
+      return res;
+    }
+    if (c !== 44) {
+      throw new TomlError("expected comma or end of structure", { toml: ctx.s, ptr: ctx.p - 1 });
+    }
+  }
+  throw new TomlError("unfinished array encountered", {
+    toml: ctx.s,
+    ptr: ctx.p
+  });
+}
+
+// node_modules/smol-toml/dist/parse.js
+function peekTable(key, table, meta, type) {
+  let t = table;
+  let m = meta;
+  let k;
+  let hasOwn = false;
+  let state;
+  for (let i = 0; i < key.length; i++) {
+    if (i) {
+      t = hasOwn ? t[k] : t[k] = {};
+      m = (state = m[k]).c;
+      if (type === 0 && (state.t === 1 || state.t === 2)) {
+        return null;
+      }
+      if (state.t === 2) {
+        let l = t.length - 1;
+        t = t[l];
+        m = m[l].c;
+      }
+    }
+    k = key[i];
+    if ((hasOwn = Object.hasOwn(t, k)) && m[k]?.t === 0 && m[k]?.d) {
+      return null;
+    }
+    if (!hasOwn) {
+      if (k === "__proto__") {
+        Object.defineProperty(t, k, { enumerable: true, configurable: true, writable: true });
+        Object.defineProperty(m, k, { enumerable: true, configurable: true, writable: true });
+      }
+      m[k] = {
+        t: i < key.length - 1 && type === 2 ? 3 : type,
+        d: false,
+        i: 0,
+        c: {}
+      };
+    }
+  }
+  state = m[k];
+  if (state.t !== type && !(type === 1 && state.t === 3)) {
+    return null;
+  }
+  if (type === 2) {
+    if (!state.d) {
+      state.d = true;
+      t[k] = [];
+    }
+    t[k].push(t = {});
+    state.c[state.i++] = state = { t: 1, d: false, i: 0, c: {} };
+  }
+  if (state.d) {
+    return null;
+  }
+  state.d = true;
+  if (type === 1) {
+    t = hasOwn ? t[k] : t[k] = {};
+  } else if (type === 0 && hasOwn) {
+    return null;
+  }
+  return [k, t, state.c];
+}
+function parse(toml, { maxDepth = 1e3, integersAsBigInt } = {}) {
+  let ctx = { s: toml, p: 0, d: maxDepth };
+  let res = {};
+  let meta = {};
+  let tmp;
+  let tbl = res;
+  let m = meta;
+  skipVoid(ctx);
+  while (ctx.p < toml.length) {
+    if (toml.charCodeAt(ctx.p) === 91) {
+      let isTableArray = toml.charCodeAt(++ctx.p) === 91;
+      tmp = ctx.p += +isTableArray;
+      let k = parseKey(ctx, "]");
+      if (isTableArray) {
+        if (toml.charCodeAt(ctx.p - 1) !== 93) {
+          throw new TomlError("expected end of table declaration", {
+            toml,
+            ptr: ctx.p - 1
+          });
+        }
+        ctx.p++;
+      }
+      let p = peekTable(
+        k,
+        res,
+        meta,
+        isTableArray ? 2 : 1
+        /* Type.EXPLICIT */
+      );
+      if (!p) {
+        throw new TomlError("trying to redefine an already defined table or value", {
+          toml,
+          ptr: tmp
+        });
+      }
+      m = p[2];
+      tbl = p[1];
+    } else {
+      tmp = ctx.p;
+      let k = parseKey(ctx);
+      let p = peekTable(
+        k,
+        tbl,
+        m,
+        0
+        /* Type.DOTTED */
+      );
+      if (!p) {
+        throw new TomlError("trying to redefine an already defined table or value", {
+          toml,
+          ptr: tmp
+        });
+      }
+      p[1][p[0]] = extractValue(ctx, void 0, integersAsBigInt);
+    }
+    skipVoid(ctx, true);
+    if (ctx.p < toml.length && (tmp = toml.charCodeAt(ctx.p)) !== 10 && tmp !== 13) {
+      throw new TomlError("each key-value declaration must be followed by an end-of-line", {
+        toml,
+        ptr: ctx.p
+      });
+    }
+    skipVoid(ctx);
+  }
+  return res;
+}
+
+// src/scanner/parsers.ts
+var import_yaml = __toESM(require_dist(), 1);
+function parseTomlSafe(content) {
+  try {
+    const value = parse(content);
+    return value && typeof value === "object" ? value : null;
+  } catch {
+    return null;
+  }
+}
+function parseYamlSafe(content) {
+  try {
+    const value = (0, import_yaml.parse)(content);
+    return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+function stripControlCharacters(text) {
+  let out = "";
+  for (const ch of text) {
+    const code = ch.charCodeAt(0);
+    const isControl = code < 32 && code !== 9 && code !== 10 && code !== 13;
+    if (!isControl) out += ch;
+  }
+  return out;
+}
+function parseJsonLenient(content) {
+  const attempt = (text) => {
+    try {
+      const value = JSON.parse(text);
+      return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+    } catch {
+      return null;
+    }
+  };
+  const strict = attempt(content);
+  if (strict) return strict;
+  const withoutComments = content.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:\\"'])\/\/[^\n]*/g, "$1");
+  const withoutTrailingCommas = withoutComments.replace(/,\s*([}\]])/g, "$1");
+  const withoutControl = stripControlCharacters(withoutTrailingCommas);
+  return attempt(withoutControl);
+}
+function parseFrontmatter(content) {
+  if (!content.startsWith("---")) return null;
+  const end = content.indexOf("\n---", 3);
+  if (end === -1) return null;
+  return parseYamlSafe(content.slice(3, end));
+}
 
 // src/rules/mcp-remote.ts
 var SCANNED_FILE_TYPES = /* @__PURE__ */ new Set([
