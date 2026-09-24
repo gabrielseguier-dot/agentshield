@@ -6,7 +6,7 @@ Security auditor for AI agent configurations (Claude Code, MCP servers, hooks, a
 
 ```bash
 npm run build      # tsc + tsup → dist/
-npm test           # vitest (912 tests)
+npm test           # vitest
 npm run dev        # tsx watch mode
 ```
 
@@ -68,12 +68,14 @@ Grades: A (>=90), B (>=75), C (>=60), D (>=40), F (<40)
 ## CLI
 
 ```bash
-agentshield scan [path]              # Static analysis
+agentshield scan                     # Static analysis (default: ~/.claude or current dir)
+agentshield scan -p <path>           # Scan a specific directory (--path)
 agentshield scan --opus              # + Claude Opus adversarial pipeline
-agentshield scan --format json|md    # Output format
-agentshield scan --fix               # Show auto-fix suggestions
+agentshield scan -f json|markdown|html|sarif  # Output format (--format)
+agentshield scan -o <file>           # Write report to a file (--output)
+agentshield scan --fix               # Auto-apply safe fixes (modifies files)
 agentshield miniclaw start           # Launch MiniClaw secure agent server
-agentshield miniclaw start --port N  # Custom port
+agentshield miniclaw start --port N  # Custom port (default 3847)
 ```
 
 ## Testing
