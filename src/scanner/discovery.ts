@@ -1,9 +1,20 @@
-import { readFileSync, existsSync, readdirSync, readlinkSync, statSync, lstatSync } from "node:fs";
+import {
+  readFileSync,
+  existsSync,
+  readdirSync,
+  readlinkSync,
+  statSync,
+  lstatSync,
+  openSync,
+  readSync,
+  closeSync,
+} from "node:fs";
 import type { Stats } from "node:fs";
 import { join, basename, extname, relative } from "node:path";
 import type { ConfigFile, ConfigFileType, DanglingSymlink, ScanTarget } from "../types.js";
 import { isExampleLikePath } from "../source-context.js";
 import { toPosixPath } from "./paths.js";
+import { parseFrontmatter } from "./parsers.js";
 
 const IGNORED_DIRS = new Set([
   ".dmux",
@@ -34,6 +45,11 @@ const CLAUDE_ROOT_MARKERS = new Set([
 
 /** Directories whose presence makes their parent a scan root. */
 const HARNESS_ROOT_DIRS = new Set([".codex", ".claude-plugin", ".cursor", ".gemini", ".opencode"]);
+
+const MARKDOWN_EXTENSIONS = new Set([".md", ".markdown"]);
+
+/** Only the head of a markdown file is read to look for agent frontmatter. */
+const FRONTMATTER_PROBE_BYTES = 8192;
 
 const CLAUDE_RUNTIME_COMPANION_NAMES: ReadonlyArray<string> = [
   "settings.json",
@@ -93,8 +109,9 @@ export function discoverConfigFiles(rootPath: string): ScanTarget {
   const seenFiles = new Set<string>();
   const claudeRoots = new Set<string>([rootPath]);
   const exampleClaudeFiles = new Set<string>();
+  const agentDefinitionFiles = new Set<string>();
 
-  walkForClaudeRoots(rootPath, rootPath, claudeRoots, exampleClaudeFiles);
+  walkForClaudeRoots(rootPath, rootPath, claudeRoots, exampleClaudeFiles, agentDefinitionFiles);
 
   for (const exampleClaudeFile of [...exampleClaudeFiles].sort()) {
     addDiscoveredFile(rootPath, exampleClaudeFile, "claude-md", files, seenFiles);
@@ -102,6 +119,14 @@ export function discoverConfigFiles(rootPath: string): ScanTarget {
 
   for (const claudeRoot of [...claudeRoots].sort()) {
     scanClaudeRoot(rootPath, claudeRoot, files, seenFiles, danglingSymlinks);
+  }
+
+  // Agent libraries (e.g. collections meant to be copied into ~/.claude/agents)
+  // keep definitions in arbitrary folders. Known locations above take precedence.
+  for (const agentFile of [...agentDefinitionFiles].sort()) {
+    const type: ConfigFileType =
+      basename(agentFile).toLowerCase() === "skill.md" ? "skill-md" : "agent-md";
+    addDiscoveredFile(rootPath, agentFile, type, files, seenFiles);
   }
 
   return { path: rootPath, files, danglingSymlinks };
@@ -139,7 +164,8 @@ function walkForClaudeRoots(
   scanRoot: string,
   dirPath: string,
   claudeRoots: Set<string>,
-  exampleClaudeFiles: Set<string>
+  exampleClaudeFiles: Set<string>,
+  agentDefinitionFiles: Set<string>
 ): void {
   if (!statOrNull(dirPath)?.isDirectory()) return;
 
@@ -154,7 +180,13 @@ function walkForClaudeRoots(
         claudeRoots.add(dirPath);
         continue;
       }
-      walkForClaudeRoots(scanRoot, join(dirPath, entry.name), claudeRoots, exampleClaudeFiles);
+      walkForClaudeRoots(
+        scanRoot,
+        join(dirPath, entry.name),
+        claudeRoots,
+        exampleClaudeFiles,
+        agentDefinitionFiles
+      );
       continue;
     }
 
@@ -165,7 +197,48 @@ function walkForClaudeRoots(
         continue;
       }
       claudeRoots.add(dirPath);
+      continue;
     }
+
+    const filePath = join(dirPath, entry.name);
+    if (isAgentDefinitionFile(scanRoot, filePath)) {
+      agentDefinitionFiles.add(filePath);
+    }
+  }
+}
+
+/**
+ * A markdown file outside documentation/example folders whose frontmatter
+ * declares both a name and a description, the shape Claude Code subagents
+ * and skills share.
+ */
+function isAgentDefinitionFile(scanRoot: string, filePath: string): boolean {
+  if (!MARKDOWN_EXTENSIONS.has(extname(filePath).toLowerCase())) return false;
+  if (isExampleLikePath(toPosixPath(relative(scanRoot, filePath)))) return false;
+
+  const head = readFileHead(filePath);
+  if (head === null) return false;
+
+  const frontmatter = parseFrontmatter(head);
+  return (
+    typeof frontmatter?.name === "string" &&
+    frontmatter.name.trim().length > 0 &&
+    typeof frontmatter.description === "string" &&
+    frontmatter.description.trim().length > 0
+  );
+}
+
+function readFileHead(filePath: string): string | null {
+  let fd: number | null = null;
+  try {
+    fd = openSync(filePath, "r");
+    const buffer = Buffer.alloc(FRONTMATTER_PROBE_BYTES);
+    const bytesRead = readSync(fd, buffer, 0, FRONTMATTER_PROBE_BYTES, 0);
+    return buffer.toString("utf-8", 0, bytesRead).replace(/\r\n/g, "\n");
+  } catch {
+    return null;
+  } finally {
+    if (fd !== null) closeSync(fd);
   }
 }
 

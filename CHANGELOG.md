@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Agent libraries are scanned
+
+- Discovery now finds subagent and skill definitions outside the known `agents/`, `.claude/agents`, and `skills/` folders: any markdown file whose frontmatter declares a non-empty `name` and `description` is scanned as an agent, or as a skill when it is named `SKILL.md`. Collections meant to be copied into `~/.claude/agents`, such as msitarzewski/agency-agents with its definitions under `engineering/`, `design/`, and other category folders, previously scanned 0 files and scored a perfect A. Example and documentation folders are still skipped, and files in known directories keep their type.
+
 ## [1.6.0] - 2026-09-10
 
 1.5.0 shipped six months of accumulated work, but it did not touch the thing people actually run into first: the scanner only understood the Claude Code layout of early 2026, it penalized the defenses it recommended, and it missed the broadest grants while flagging the narrow ones. 1.6.0 is the release that addresses that. It closes every issue that was open on the tracker, lands or supersedes every open pull request, moves the scanner to the September 2026 shape of Claude Code, Codex CLI, Hermes, Cursor, Gemini CLI, Copilot, OpenCode, Cline, and Roo, and adds a benchmark against the comparable scanners so the gaps are written down rather than guessed at.
