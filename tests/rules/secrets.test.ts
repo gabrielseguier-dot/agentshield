@@ -564,6 +564,19 @@ describe("secretRules", () => {
       expect(findings.some((f) => f.title.includes("DigitalOcean"))).toBe(true);
     });
 
+    it("detects Azure storage account keys", () => {
+      const key = "AccountKey=" + "Ab1+/".repeat(17) + "Z==";
+      const findings = runAllSecretRules(makeFile(key));
+      expect(findings.some((f) => f.title.includes("Azure storage account key"))).toBe(true);
+    });
+
+    it("does not flag npm lockfile sha512 integrity hashes as Azure keys", () => {
+      const integrity = "sha512-" + "Ab1+/".repeat(17) + "Z==";
+      const file = makeFile(`"integrity": "${integrity}"`, "package-manager-config");
+      const findings = runAllSecretRules(file);
+      expect(findings.some((f) => f.title.includes("Azure storage account key"))).toBe(false);
+    });
+
     it("does not flag short hf_ prefixes", () => {
       const file = makeFile("hf_short");
       const findings = runAllSecretRules(file);

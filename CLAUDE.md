@@ -6,7 +6,7 @@ Security auditor for AI agent configurations (Claude Code, MCP servers, hooks, a
 
 ```bash
 npm run build      # tsc + tsup → dist/
-npm test           # vitest (912 tests)
+npm test           # vitest
 npm run dev        # tsx watch mode
 ```
 
@@ -17,20 +17,39 @@ src/
   index.ts          # CLI entry (commander)
   types.ts          # Core types + Zod schemas
   scanner/
-    discovery.ts    # File discovery (CLAUDE.md, settings.json, mcp.json, agents/, etc.)
+    discovery.ts    # File discovery (CLAUDE.md, settings.json, mcp.json, agents/, lockfiles, other harnesses)
+    parsers.ts      # Safe JSON/TOML/YAML parsing
+    paths.ts        # Path normalization for scan output
     index.ts        # Orchestrates discovery → rules → sorted findings
-  rules/
-    index.ts        # Barrel export of all rule modules
-    secrets.ts      # 10 rules — API keys, tokens, passwords, env exposure, webhooks, private keys, base64, internal IPs
-    permissions.ts  # 10 rules — allow/deny analysis, dangerous flags, destructive git, mutable tools, sensitive paths, network access
-    hooks.ts        # 34 rules — injection, exfiltration, persistence, container escape, clipboard, log tampering, reverse shells
-    mcp.ts          # 23 rules — risky servers, env override, npx supply chain, auto-approve, timeout, bind-all, CORS
-    agents.ts       # 25 rules — tool restrictions, prompt injection, reflection attacks, output manipulation, social engineering
+  rules/            # 239 built-in rules
+    index.ts        # getBuiltinRules() — aggregates every rule module
+    secrets.ts      # 10 — API keys, tokens, passwords, env exposure, webhooks, private keys, base64, internal IPs
+    permissions.ts  # 13 — allow/deny analysis, dangerous flags, destructive git, sensitive paths, network access
+    hooks.ts        # 38 — injection, exfiltration, persistence, container escape, log tampering, reverse shells
+    mcp.ts          # 25 — risky servers, env override, npx supply chain, auto-approve, bind-all, CORS
+    mcp-cve.ts      # 2  — CVE database + known-malicious package cross-reference
+    mcp-tool-poisoning.ts # 5 — MCP tool description poisoning
+    mcp-remote.ts   # 16 — remote transport, OAuth, stdio bridges, cross-harness auto-approval
+    package-manager.ts # 3 — npm/pnpm/yarn config hardening
+    skills.ts       # 2  — SKILL.md packaging hygiene
+    agents.ts       # 41 — tool restrictions, prompt injection, reflection, output manipulation, social engineering
+    prompt-defense.ts # 1 — missing prompt-injection defenses in instruction files
+    codex.ts        # 16 — OpenAI Codex CLI config.toml
+    hermes.ts       # 8  — Hermes agent config.yaml
+    claude-code.ts  # 34 — current Claude Code settings keys, hooks schema, skill/subagent frontmatter
+    harnesses.ts    # 25 — plugin manifests, Gemini CLI, OpenCode, Cursor hooks, Copilot agents, @imports
+    external.ts     # --rule-pack loader for external JSON rule packs
+    guard-context.ts, permission-entries.ts # Shared helpers (guard detection, permission normalization)
   reporter/
     score.ts        # Scoring engine (severity deductions, grade A-F, category breakdown)
     terminal.ts     # Colored terminal output
     json.ts         # JSON + Markdown report formats
+    html.ts, sarif.ts # HTML and SARIF report formats
     index.ts        # Format dispatcher
+  action*.ts        # GitHub Action entry (bundled to dist/action.js)
+  baseline/ policy/ compliance/ evidence-pack/ remediation/ fixer/ # --baseline, --policy, --compliance, --evidence-pack, --remediation-plan, --fix
+  injection/ sandbox/ taint/ supply-chain/ corpus/ # --injection, --sandbox, --taint, --supply-chain, --corpus
+  watch/ runtime/ init/ # watch, runtime and init subcommands
   opus/
     prompts.ts      # System prompts for Attacker/Defender/Auditor
     pipeline.ts     # Claude Opus three-agent adversarial pipeline
@@ -68,12 +87,14 @@ Grades: A (>=90), B (>=75), C (>=60), D (>=40), F (<40)
 ## CLI
 
 ```bash
-agentshield scan [path]              # Static analysis
+agentshield scan                     # Static analysis (default: ~/.claude or current dir)
+agentshield scan -p <path>           # Scan a specific directory (--path)
 agentshield scan --opus              # + Claude Opus adversarial pipeline
-agentshield scan --format json|md    # Output format
-agentshield scan --fix               # Show auto-fix suggestions
+agentshield scan -f json|markdown|html|sarif  # Output format (--format)
+agentshield scan -o <file>           # Write report to a file (--output)
+agentshield scan --fix               # Auto-apply safe fixes (modifies files)
 agentshield miniclaw start           # Launch MiniClaw secure agent server
-agentshield miniclaw start --port N  # Custom port
+agentshield miniclaw start --port N  # Custom port (default 3847)
 ```
 
 ## Testing

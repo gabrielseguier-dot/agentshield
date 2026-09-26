@@ -121,7 +121,8 @@ const SECRET_PATTERNS: ReadonlyArray<{
   },
   {
     name: "azure-key",
-    pattern: /[a-zA-Z0-9/+]{86}==/g,
+    // Reject mid-token matches and SRI digests (npm lockfile "integrity": "sha512-...==")
+    pattern: /(?<![a-zA-Z0-9/+]|sha512-)[a-zA-Z0-9/+]{86}==/g,
     description: "Azure storage account key",
   },
   {
